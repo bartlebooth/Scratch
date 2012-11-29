@@ -1,0 +1,29 @@
+<?php
+
+return [
+    'srcDir' => __DIR__ . '/../src',
+    'packages' => [
+        'Scratch/Core' => true,
+        'Scratch/Demo' => true
+    ],
+    'devIps' => [
+        '127.0.0.1' => true
+    ],
+    'db' => [
+        'driver' => 'MySQL',
+        'host' => 'localhost',
+        'database' => 'scratch_prod',
+        'user' => 'root',
+        'password' => null
+    ],
+    'testDb' => [
+        'driver' => 'MySQL',
+        'host' => 'localhost',
+        'database' => 'scratch_prod',
+        'user' => 'root',
+        'password' => null
+    ],
+    'locale' => 'fr',
+    'sessionDir' => __DIR__. '/../sessions',
+    'sessionLifetime' => null
+];
