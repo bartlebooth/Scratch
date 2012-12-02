@@ -141,6 +141,30 @@ class InputValidator
         return true;
     }
 
+    public function toBeUnique(\Closure $checker)
+    {
+        if (!$this->hasCurrentProperty) {
+            throw new RuntimeException('Constraint unapplicable : no current property.');
+        }
+
+        if (true !== $checker($this->currentPropertyValue)) {
+            return $this->addViolation($this->currentProperty, 'Already used.');
+        }
+
+        return true;
+    }
+
+    public function check()
+    {
+        if (count($this->violations) > 0) {
+            $ex = new ValidationException();
+            $ex->setViolations($this->violations);
+            throw $ex;
+        }
+
+        return true;
+    }
+
     private function addViolation($property, $message)
     {
         return $this->violations["{$property}::error"] = $message;

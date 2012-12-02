@@ -2,13 +2,13 @@
 
 namespace Scratch\Core\Library;
 
-use Scratch\Core\Model\Api\UserModelInterface;
+use Scratch\Core\Model\Api\AbstractUserModel;
 
 class Security
 {
     private $userModel;
 
-    public function __construct(UserModelInterface $userModel)
+    public function __construct(AbstractUserModel $userModel)
     {
         $this->userModel = $userModel;
     }

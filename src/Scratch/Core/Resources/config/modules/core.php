@@ -35,8 +35,11 @@ return function ($container) {
                     && $container['config']['packages'][$package] === true) {
                     if (file_exists($container['config']['srcDir']. '/' . str_replace('\\', '/', $class) . '.php')) {
                         $models[$class] = new $class;
-                        $models[$class] instanceof Scratch\Core\Library\AbstractModel
-                            && $models[$class]->setConnection($container['core::connection']());
+
+                        if ($models[$class] instanceof Scratch\Core\Library\AbstractModel) {
+                            $models[$class]->setConnection($container['core::connection']());
+                            $models[$class]->setValidator($container['core::validator']());
+                        }
                     } else {
                         throw new Exception("Cannot find the model '{$model}' in package '{$package}' (driver : '{$dbConfig['driver']}').");
                     }
@@ -69,6 +72,15 @@ return function ($container) {
 
             return $templating;
         },
+        'validator' => function () use ($container) {
+            static $validator;
+
+            if (null === $validator) {
+                $validator = new Scratch\Core\Library\InputValidator();
+            }
+
+            return $validator;
+        },
         'navbar' => function () use ($container) {
             $navbarRenderer = new Scratch\Core\Renderer\NavbarRenderer($container['core::templating']());
 
@@ -78,6 +90,12 @@ return function ($container) {
             $footerRenderer = new Scratch\Core\Renderer\FooterRenderer($container['core::templating']());
 
             return $footerRenderer->render();
+        },
+        'masterPage' => function () use ($container) {
+            return new Scratch\Core\Library\HtmlPageBuilder(
+                $container['core::templating'](),
+                __DIR__.'/../../templates/master.html.php'
+            );
         }
     ];
 };
