@@ -19,7 +19,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue($this->container['match']('/', 'GET', false));
         $this->assertTrue($this->container['match']('/prefixFoo/index', 'GET', false));
     }
-    
+
     public function test2()
     {
         $this->setExpectedException('RuntimeException');
@@ -29,7 +29,7 @@ class ContainerTest extends \PHPUnit_Framework_TestCase
     public function test3()
     {
         $response = $this->client->request('/', 'GET');
-        $this->assertEquals('INDEX', $response['body']);
+        $this->assertContains('Accueil', $response['body']);
         $this->assertEquals(200, $response['code']);
     }
 }

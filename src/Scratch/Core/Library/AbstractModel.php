@@ -12,7 +12,7 @@ abstract class AbstractModel
         $this->connection = $connection;
     }
 
-    public function setValidator(InputValidator $validator)
+    public function setValidator(ArrayValidator $validator)
     {
         $this->validator = $validator;
     }

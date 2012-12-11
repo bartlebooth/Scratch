@@ -9,24 +9,28 @@ abstract class AbstractUserModel extends AbstractModel
     public function createUser(array $properties)
     {
         $this->validator->setInput($properties);
-        $this->validator->expect('username')->toBeUnique(function ($username) {
-            return $this->isUsernameUnique($username);
-        });
-        $this->validator->expect('username')->toBeAlphanumeric(5, 60);
-        $this->validator->expect('password')->toBeConfirmed();
-        $this->validator->expect('password')->toBeAlphanumeric(5, 60);
+        $this->validator->setDefaults(['email' => null]);
+        $this->validator->expect('username')
+            ->toBeAlphanumeric(5, 60)
+            ->toBeUnique(function ($username) {
+                return $this->isUsernameUnique($username);
+            });
+        $this->validator->expect('password')
+            ->toBeAlphanumeric(5, 60)
+            ->toBeConfirmed();
         $this->validator->expect('firstName')->toBeString(2, 60);
         $this->validator->expect('lastName')->toBeString(2, 60);
+        $this->validator->expect('email')->toBeString(2, 60);
         //$this->validator->expect('avatar')->toBeFile(1024, ['jpeg', 'png', 'gif']);
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
-        $this->validator->check();
+        $this->validator->throwViolations();
 
         //return $this->doCreateUser($username, $password, $firstName, $lastName, $avatar, $platformMaskId);
         return $this->doCreateUser(
-            $properties['username'],
-            $properties['password'][0],
-            $properties['firstName'],
-            $properties['lastName'],
+            $this->validator->property['username'],
+            $this->validator->property['password'][0],
+            $this->validator->property['firstName'],
+            $this->validator->property['lastName'],
             1
         );
     }

@@ -76,7 +76,7 @@ return function ($container) {
             static $validator;
 
             if (null === $validator) {
-                $validator = new Scratch\Core\Library\InputValidator();
+                $validator = new Scratch\Core\Library\ArrayValidator();
             }
 
             return $validator;
