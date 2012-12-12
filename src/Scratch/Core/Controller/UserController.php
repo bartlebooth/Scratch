@@ -22,7 +22,8 @@ class UserController extends Controller
 
         try {
             $this->container['core::model']('Scratch/Core', 'UserModel')->createUser($data);
-            echo 'user created';
+            $_SESSION['flashes']['success'][] = 'User created';
+            $this->creationForm();
         } catch (ValidationException $ex) {
             $this->container['core::masterPage']()
                 ->setSectionTitle('Create user')

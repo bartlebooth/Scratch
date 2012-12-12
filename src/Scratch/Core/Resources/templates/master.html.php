@@ -40,6 +40,18 @@
                     </div>
                 </div>
                 <div class="row-fluid">
+                    <?php foreach ($flashes() as $category => $messages): ?>
+                        <div class="alert alert-<?= $category ?>">
+                            <a class="close" data-dismiss="alert" href="#">×</a>
+                            <ul>
+                                <?php foreach ($messages as $message): ?>
+                                    <li><?= $message ?></li>
+                                <?php endforeach; ?>
+                            </ul>
+                        </div>
+                    <?php endforeach; ?>
+                </div>
+                <div class="row-fluid">
                     <?= $var('body', '', true) ?>
                 </div>
             </div>

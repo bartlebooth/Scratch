@@ -14,6 +14,7 @@ class Templating
     private $path;
     private $asset;
     private $call;
+    private $flashes;
 
     public function __construct(Container $container, $frontScript, $webDir)
     {
@@ -59,6 +60,16 @@ class Templating
         $this->call = function ($renderer) use ($container) {
             $container[$renderer]();
         };
+        $this->flashes = function () {
+            $flashes = [];
+
+            if (isset($_SESSION['flashes'])) {
+                 $flashes = $_SESSION['flashes'];
+                 unset($_SESSION['flashes']);
+            }
+
+            return $flashes;
+        };
     }
     public function render($template, array $variables = array(), $output = true)
     {
@@ -68,10 +79,11 @@ class Templating
             $path = $this->path;
             $asset = $this->asset;
             $call = $this->call;
+            $flashes = $this->flashes;
             $this->template = $template;
             $this->variables = array_merge($this->variables, $variables);
             ob_start();
-            call_user_func(Closure::bind(function () use ($template, $render, $var, $path, $asset, $call) {
+            call_user_func(Closure::bind(function () use ($template, $render, $var, $path, $asset, $call, $flashes) {
                 require $template;
             }, null));
 
