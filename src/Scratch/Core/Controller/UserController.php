@@ -2,10 +2,10 @@
 
 namespace Scratch\Core\Controller;
 
-use Scratch\Core\Library\ContainerAware;
+use Scratch\Core\Library\Controller;
 use Scratch\Core\Library\ValidationException;
 
-class UserController extends ContainerAware
+class UserController extends Controller
 {
     public function creationForm()
     {
@@ -15,23 +15,10 @@ class UserController extends ContainerAware
             ->display();
     }
 
-    private function trim(array $properties)
-    {
-        foreach ($properties as $property => $value) {
-            if (is_string($value)) {
-                $properties[$property] = trim($value);
-            } elseif (is_array($value)) {
-                $properties[$property] = $this->trim($value);
-            }
-        }
-
-        return $properties;
-    }
-
     public function create()
     {
         header('cache-control: no-cache');
-        $data = $this->trim($_POST);
+        $data = $this->filter($_POST);
 
         try {
             $this->container['core::model']('Scratch/Core', 'UserModel')->createUser($data);
