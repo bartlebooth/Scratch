@@ -20,20 +20,20 @@ abstract class AbstractUserModel extends AbstractModel
             ->toBeConfirmed();
         $this->validator->expect('firstName')->toBeString(2, 60);
         $this->validator->expect('lastName')->toBeString(2, 60);
-        $this->validator->expect('email')->toBeString(2, 60);
+        $this->validator->expect('email')->toBeEmail();
         //$this->validator->expect('avatar')->toBeFile(1024, ['jpeg', 'png', 'gif']);
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
         $this->validator->throwViolations();
 
         return $this->doCreateUser(
             $this->validator->getProperty('username'),
-            $this->validator->getProperty('password')[0],
+            $this->validator->getProperty('password'),
             $this->validator->getProperty('firstName'),
             $this->validator->getProperty('lastName'),
+            $this->validator->getProperty('email'),
             1
         );
     }
-
 
     abstract public function getUserByCredentials($username, $password);
 
@@ -41,6 +41,5 @@ abstract class AbstractUserModel extends AbstractModel
 
     abstract public function isUsernameUnique($username);
 
-    //abstract protected function doCreateUser($username, $password, $firstName, $lastName, $avatar, $platformMaskId);
-    abstract protected function doCreateUser($username, $password, $firstName, $lastName, $platformMaskId);
+    abstract protected function doCreateUser($username, $password, $firstName, $lastName, $email, $platformMaskId);
 }

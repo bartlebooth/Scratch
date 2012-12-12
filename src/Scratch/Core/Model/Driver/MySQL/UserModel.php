@@ -45,17 +45,18 @@ class UserModel extends AbstractUserModel
         return false === $stmt->fetch(PDO::FETCH_OBJ);
     }
 
-    public function doCreateUser($username, $password, $firstName, $lastName, $platformMaskId)
+    public function doCreateUser($username, $password, $firstName, $lastName, $email, $platformMaskId)
     {
         $stmt = $this->connection->prepare('
-            INSERT `users` (`username`, `password`, `firstName`, `lastName`, `platformMaskId`)
-            VALUES (?, SHA2(?, 512), ?, ?, ?)
+            INSERT `users` (`username`, `password`, `firstName`, `lastName`, `email`, `platformMaskId`)
+            VALUES (?, SHA2(?, 512), ?, ?, ?, ?)
         ');
         $stmt->bindValue(1, $username, PDO::PARAM_STR);
         $stmt->bindValue(2, $password, PDO::PARAM_STR);
         $stmt->bindValue(3, $firstName, PDO::PARAM_STR);
         $stmt->bindValue(4, $lastName, PDO::PARAM_STR);
-        $stmt->bindValue(5, $platformMaskId, PDO::PARAM_INT);
+        $stmt->bindValue(5, $email, PDO::PARAM_STR);
+        $stmt->bindValue(6, $platformMaskId, PDO::PARAM_INT);
 
         return !$stmt->execute() ?: $this->connection->lastInsertId();
     }

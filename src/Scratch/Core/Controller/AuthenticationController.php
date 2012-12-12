@@ -19,6 +19,7 @@ class AuthenticationController extends ContainerAware
 
     public function login()
     {
+        header('cache-control: no-cache');
         $user = $this->container['core::model']('Scratch/Core', 'UserModel')
             ->getUserByCredentials($_POST['username'], $_POST['password']);
 

@@ -93,6 +93,16 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($errors, $property->getViolations());
     }
 
+    /**
+     * @dataProvider emailConstraintProvider
+     */
+    public function testEmailConstraint($email, array $errors)
+    {
+        $property = new ArrayProperty('foo', $email);
+        $property->toBeEmail();
+        $this->assertEquals($errors, $property->getViolations());
+    }
+
     public function nonScalarValueProvider()
     {
         $object = new \stdClass();
@@ -151,6 +161,17 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
         return [
             ['foo', 'bar', function () { return true; }, []],
             ['foo', 'baz', function () { return false; }, ['Already used']]
+        ];
+    }
+
+    public function emailConstraintProvider()
+    {
+        return [
+            ['foo@bar.baz', []],
+            ['foo', ['Email address is not valid']],
+            ['foo@', ['Email address is not valid']],
+            ['foo@bar', ['Email address is not valid']],
+            ['foo@bar.', ['Email address is not valid']],
         ];
     }
 }

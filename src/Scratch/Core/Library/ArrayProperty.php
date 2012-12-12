@@ -114,6 +114,11 @@ class ArrayProperty
         return $this;
     }
 
+    public function toBeEmail()
+    {
+        return $this->toMatch('#^[A-Z0-9_%\+-]+@[A-Z0-9\.-]+\.[A-Z]{2,6}$#i', 'Email address is not valid');
+    }
+
     private function getScalarValue()
     {
         if ($this->hasScalarValue) {
