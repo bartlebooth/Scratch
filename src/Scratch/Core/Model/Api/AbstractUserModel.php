@@ -8,7 +8,7 @@ abstract class AbstractUserModel extends AbstractModel
 {
     public function createUser(array $properties)
     {
-        $this->validator->setInput($properties);
+        $this->validator->setProperties($properties);
         $this->validator->setDefaults(['email' => null]);
         $this->validator->expect('username')
             ->toBeAlphanumeric(5, 60)
@@ -25,12 +25,11 @@ abstract class AbstractUserModel extends AbstractModel
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
         $this->validator->throwViolations();
 
-        //return $this->doCreateUser($username, $password, $firstName, $lastName, $avatar, $platformMaskId);
         return $this->doCreateUser(
-            $this->validator->property['username'],
-            $this->validator->property['password'][0],
-            $this->validator->property['firstName'],
-            $this->validator->property['lastName'],
+            $this->validator->getProperty('username'),
+            $this->validator->getProperty('password')[0],
+            $this->validator->getProperty('firstName'),
+            $this->validator->getProperty('lastName'),
             1
         );
     }

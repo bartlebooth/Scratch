@@ -57,7 +57,7 @@ class ArrayValidator
 
         foreach ($this->properties as $property) {
             if (count($propertyViolations = $property->getViolations()) > 0) {
-                $violations[$property->getName()] = $propertyViolations;
+                $violations[$property->getName() . '::errors'] = $propertyViolations;
             }
         }
 

@@ -68,7 +68,7 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         $this->validator->expect('foo')
             ->toBeString(5, 10)
             ->toMatch('#\d+#', 'Error...');
-        $this->assertEquals(2, count($this->validator->getViolations()['foo']));
+        $this->assertEquals(2, count($this->validator->getViolations()['foo::errors']));
     }
 
     public function testViolationsCanBeThrownWithinAnException()

@@ -23,11 +23,19 @@ class Templating
         $matchUrl = $container['match'];
         $this->var = function ($name, $default = null, $raw = false) use ($env) {
             if (isset($this->variables[$name])) {
-                return $raw ? $this->variables[$name] : htmlspecialchars($this->variables[$name]);
+                if (is_string($this->variables[$name])) {
+                    return $raw ? $this->variables[$name] : htmlspecialchars($this->variables[$name]);
+                }
+
+                return $this->variables[$name];
             }
 
             if (null !== $default) {
-                return $raw ? $default : htmlspecialchars($default);
+                if (is_string($default)) {
+                    return $raw ? $default : htmlspecialchars($default);
+                }
+
+                return $default;
             }
 
             if ($env !== 'prod') {

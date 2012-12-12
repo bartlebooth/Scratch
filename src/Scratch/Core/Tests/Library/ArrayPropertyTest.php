@@ -5,6 +5,15 @@ namespace Scratch\Core\Library;
 class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
 {
     /**
+     * @dataProvider nonScalarValueProvider
+     */
+    public function testGetValueReturnsFirstScalarValueIfAny($value, $scalarValue)
+    {
+        $property = new ArrayProperty('foo', $value);
+        $this->assertEquals($scalarValue, $property->getValue());
+    }
+
+    /**
      * @dataProvider stringConstraintProvider
      */
     public function testStringConstraint($name, $value, $minLength, $maxLength, array $errors)
@@ -60,7 +69,7 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
             $property->toBeConfirmed();
             $this->fail('No exception thrown');
         } catch (\Exception $ex) {
-            $this->assertEquals(ArrayProperty::INVALID_VALUE, $ex->getCode());
+            $this->assertEquals(ArrayProperty::INVALID_VALUE_COUNT, $ex->getCode());
         }
     }
 
@@ -82,6 +91,21 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
         $property = new ArrayProperty($name, $value);
         $property->toBeUnique($isUnique);
         $this->assertEquals($errors, $property->getViolations());
+    }
+
+    public function nonScalarValueProvider()
+    {
+        $object = new \stdClass();
+        $object->bar = 'bar';
+        $object->baz = 'baz';
+
+        return [
+            [['bar'], 'bar'],
+            [[['bar'], 'baz'], 'baz'],
+            [$object, 'bar'],
+            [[], []],
+
+        ];
     }
 
     public function stringConstraintProvider()

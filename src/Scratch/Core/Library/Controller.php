@@ -6,17 +6,17 @@ class Controller extends ContainerAware
 {
     public function filter(array $data)
     {
-        // remove null/empty values
-
-        $trimString = function ($value) {
-            return ($trimmedValue = trim($value)) === '' ? null : $trimmedValue;
-        };
+        $properties = [];
 
         foreach ($data as $property => $value) {
             if (is_string($value)) {
-                $properties[$property] = $trimString($value);
+                if ('' !== $value = trim($value)) {
+                    $properties[$property] = $value;
+                }
             } elseif (is_array($value)) {
-                $properties[$property] = $this->trim($value);
+                if (count($value) > 0) {
+                    $properties[$property] = $this->filter($value);
+                }
             }
         }
 
