@@ -47,14 +47,14 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testConstraintsAreBypassedOnNonGivenPropertyWithDefault()
+    public function testViolationsAreIgnoredOnNonGivenPropertyWithDefaultValue()
     {
         $this->validator->setDefaults(['foo' => null]);
         $this->validator->expect('foo')->toBeAlphanumeric(10, 20);
         $this->assertEquals(0, count($this->validator->getViolations()));
     }
 
-    public function testConstraintIsAppliedOnGivenPropertyEvenIfADefaultIsProvided()
+    public function testConstraintIsAppliedOnGivenPropertyEvenIfADefaultValueIsProvided()
     {
         $this->validator->setDefaults(['foo' => 'bar']);
         $this->validator->setProperties(['foo' => 'abcdef']);

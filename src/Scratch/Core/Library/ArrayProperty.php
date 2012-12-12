@@ -2,18 +2,25 @@
 
 namespace Scratch\Core\Library;
 
+use \Exception;
+use \InvalidArgumentException;
+use \Closure;
+
 class ArrayProperty
 {
+    const INVALID_VALUE_TYPE = 20;
+    const INVALID_VALUE = 21;
+
     private $name;
     private $value;
-    private $ignoreConstraints;
+    private $ignoreViolations;
     private $violations;
 
-    public function __construct($name, $value, $ignoreConstraints = false)
+    public function __construct($name, $value, $ignoreViolations = false)
     {
         $this->name = $name;
         $this->value = $value;
-        $this->ignoreConstraints = $ignoreConstraints;
+        $this->ignoreViolations = $ignoreViolations;
         $this->violations = [];
     }
 
@@ -29,7 +36,7 @@ class ArrayProperty
 
     public function getViolations()
     {
-        if ($this->ignoreConstraints) {
+        if ($this->ignoreViolations) {
             return [];
         }
 
@@ -48,7 +55,7 @@ class ArrayProperty
         $this->checkStringLengthConstraint($minLength, $maxLength);
 
         if (0 === preg_match('#^[a-zA-Z0-9]+$#', $this->value)) {
-            return $this->violations[] = 'Must be alphanumeric.';
+            return $this->violations[] = 'Must be alphanumeric';
         }
 
         return $this;
@@ -63,52 +70,42 @@ class ArrayProperty
         return $this;
     }
 
-    /*
     public function toBeConfirmed()
     {
-        if (!$this->hasCurrentProperty) {
-            throw new RuntimeException('Constraint unapplicable : no current property.', self::NO_PROPERTY_SELECTED);
+        if (!is_array($this->value)) {
+            throw new Exception('Constraint unapplicable : property must be an array of values.', self::INVALID_VALUE_TYPE);
         }
 
-        if (!is_array($this->input[$this->currentProperty])) {
-            throw new RuntimeException('Constraint unapplicable : property must an array of values.');
+        if (count($this->value) < 2) {
+            throw new Exception('Constraint unapplicable : property must have two values at least.', self::INVALID_VALUE);
         }
 
-        if (count($this->input[$this->currentProperty]) < 2) {
-            throw new RuntimeException('Constraint unapplicable : property must have two values at least.');
-        }
+        $firstElement = reset($this->value);
+        next($this->value);
 
-        $firstValue = array_shift($this->input[$this->currentProperty]);
-
-        foreach ($this->input[$this->currentProperty] as $value) {
-            if ($value !== $firstValue) {
-                return $this->addViolation($this->currentProperty, "Values do not match.");
+        foreach ($this->value as $element) {
+            if ($element !== $firstElement) {
+                $this->violations[] = 'Values do not match';
+                break;
             }
         }
 
-        $this->input[$this->currentProperty] = $firstValue;
-
-        return true;
+        return $this;
     }
 
-    public function toBeUnique(\Closure $isUnique)
+    public function toBeUnique(Closure $isUnique)
     {
-        if (!$this->hasCurrentProperty) {
-            throw new RuntimeException('Constraint unapplicable : no current property.', self::NO_PROPERTY_SELECTED);
+        if (true !== $isUnique($this->value)) {
+            $this->violations[] = 'Already used';
         }
 
-        if (true !== $isUnique($this->currentPropertyValue)) {
-            return $this->addViolation($this->currentProperty, 'Already used.');
-        }
-
-        return true;
+        return $this;
     }
-    */
 
     private function checkStringLengthConstraint($minLength = null, $maxLength = null)
     {
         if (is_integer($minLength) && is_integer($maxLength) && $minLength > $maxLength) {
-            throw new Exception('Maximum length must be greater than minimal length.');
+            throw new InvalidArgumentException('Maximum length must be greater than minimal length.');
         } elseif (!is_string($this->value)) {
             $this->violations[] = 'Must be a string';
         } elseif (is_integer($minLength) && strlen($this->value) < $minLength) {
