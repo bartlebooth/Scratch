@@ -32,7 +32,14 @@
             <label class="control-label" for="lastName">Last name :</label>
             <div class="controls">
                 <input type="text" id="lastName" name="lastName" value="<?= $var('lastName', '') ?>" required="required" />
-                <span class="help-inline"><?= $var('firstName::error', '') ?></span>
+                <span class="help-inline"><?= $var('lastName::error', '') ?></span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="email">Email :</label>
+            <div class="controls">
+                <input type="text" id="lastName" name="email" value="<?= $var('email', '') ?>" />
+                <span class="help-inline"><?= $var('email::error', '') ?></span>
             </div>
         </div>
         <div class="form-actions">
