@@ -42,6 +42,15 @@ class ArrayValidator
         throw new Exception("Property '{$name}' is not set and has no default.", self::UNKNOWN_PROPERTY);
     }
 
+    /**
+     * Returns the property to be validated.
+     *
+     * @param string $property
+     *
+     * @return ArrayProperty
+     *
+     * @throws Exception If property is not set and has no default was provided
+     */
     public function expect($property)
     {
         if (isset($this->properties[$property])) {
@@ -67,7 +76,7 @@ class ArrayValidator
     public function throwViolations()
     {
         if (count($violations = $this->getViolations()) > 0) {
-            $ex = new ValidationException();
+            $ex = new ValidationException(print_r($violations, true));
             $ex->setViolations($violations);
             throw $ex;
         }

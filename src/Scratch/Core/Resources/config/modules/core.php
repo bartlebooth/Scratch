@@ -9,6 +9,7 @@ return function ($container) {
                 $dbConfig = $container['env'] == 'test' ? $container['config']['testDb'] : $container['config']['db'];
 
                 switch ($dbConfig['driver']) {
+                    // Must be PDO for transactions
                     case 'MySQL':
                         $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']}";
                         $connection = new PDO($dsn, $dbConfig['user'], $dbConfig['password'], [

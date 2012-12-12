@@ -10,27 +10,27 @@ class UserModel extends AbstractUserModel
     public function getUserByCredentials($username, $password)
     {
         $stmt = $this->connection->prepare('
-            SELECT `id`, `username`, `firstName`, `lastName`
+            SELECT `id`, `username`, `firstName`, `lastName`, `email`, `platformMaskId`
             FROM `users`
             WHERE `username` = ?
             AND `password` = SHA2(?, 512)
         ');
         $stmt->execute([$username, $password]);
 
-        return $stmt->fetch(PDO::FETCH_OBJ);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function getUserById($id)
     {
         $stmt = $this->connection->prepare('
-            SELECT `id`, `username`, `firstName`, `lastName`
+            SELECT `username`, `firstName`, `lastName`, `email`, `platformMaskId`
             FROM `users`
             WHERE `id` = ?
         ');
         $stmt->bindValue(1, $id, PDO::PARAM_INT);
         $stmt->execute([$id]);
 
-        return $stmt->fetch(PDO::FETCH_OBJ);
+        return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function isUsernameUnique($username)
@@ -42,7 +42,7 @@ class UserModel extends AbstractUserModel
         ');
         $stmt->execute([$username]);
 
-        return false === $stmt->fetch(PDO::FETCH_OBJ);
+        return false === $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
     public function doCreateUser($username, $password, $firstName, $lastName, $email, $platformMaskId)

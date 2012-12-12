@@ -2,12 +2,16 @@
 
 namespace Scratch\Core\Library;
 
+use \PDO;
+
 abstract class AbstractModel
 {
+    /** @var \PDO */
     protected $connection;
+    /** @var ArrayValidator */
     protected $validator;
 
-    public function setConnection($connection)
+    public function setConnection(PDO $connection)
     {
         $this->connection = $connection;
     }

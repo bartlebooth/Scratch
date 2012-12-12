@@ -6,7 +6,14 @@ use Scratch\Core\Library\AbstractModel;
 
 abstract class AbstractUserModel extends AbstractModel
 {
-    public function createUser(array $properties)
+    /**
+     * Creates a user.
+     *
+     * @param array $properties
+     *
+     * @return integer The id of the created user
+     */
+    final public function createUser(array $properties)
     {
         $this->validator->setProperties($properties);
         $this->validator->setDefaults(['email' => null]);
@@ -35,11 +42,45 @@ abstract class AbstractUserModel extends AbstractModel
         );
     }
 
+    /**
+     * Retrieve a user by its id.
+     *
+     * @param string username
+     * @param string password
+     *
+     * @return array The user properties (define!)
+     */
     abstract public function getUserByCredentials($username, $password);
 
+    /**
+     * Retrieves a user by his id.
+     *
+     * @param integer id
+     *
+     * @return array The user properties (define!)
+     */
     abstract public function getUserById($id);
 
+    /**
+     * Checks if a username is unique.
+     *
+     * @param string username
+     *
+     * @return boolean
+     */
     abstract public function isUsernameUnique($username);
 
+    /**
+     * Creates a user
+     *
+     * @param string username
+     * @param string password
+     * @param string firstName
+     * @param string lastName
+     * @param string email
+     * @param integer platformMaskId
+     *
+     * @return integer The id of the created user
+     */
     abstract protected function doCreateUser($username, $password, $firstName, $lastName, $email, $platformMaskId);
 }
