@@ -23,7 +23,7 @@ class AuthenticationController extends ContainerAware
         $user = $this->container['core::model']('Scratch/Core', 'UserModel')
             ->getUserByCredentials($_POST['username'], $_POST['password']);
 
-        if (!$user) {
+        if (false === $user) {
             $templating = $this->container['core::templating']();
             $templating->render(
                 __DIR__.'/../Resources/templates/master.html.php', [
@@ -36,7 +36,7 @@ class AuthenticationController extends ContainerAware
                 ]
             );
         } else {
-            $_SESSION['userId'] = $user->id;
+            $_SESSION['userId'] = $user['id'];
             echo 'LOGGED';
         }
     }
