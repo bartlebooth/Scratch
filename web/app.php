@@ -28,9 +28,9 @@ call_user_func(function ($config) {
 
         $container = new Scratch\Core\Library\Container($env, $config, $routing, $modules, $listeners);
         register_shutdown_function(function () use ($container) {
-            if (null !== $fatalError = error_get_last()) {
+            if ((null !== $error = error_get_last()) && $error['type'] === E_ERROR) { // Not necessarily fatal... (e.g. exceed post max size)
                 $container['dispatch']('exception', new RuntimeException(
-                    "{$fatalError['message']}, in {$fatalError['file']} line {$fatalError['line']}"
+                    "{$error['message']}, in {$error['file']} line {$error['line']}"
                 ));
             }
         });

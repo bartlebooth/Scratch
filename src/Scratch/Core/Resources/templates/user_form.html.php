@@ -1,4 +1,4 @@
-<form id="user-creation-form" class="form-horizontal" action="<?= $path('/user/create', 'POST') ?>" method="post">
+<form id="user-creation-form" class="form-horizontal" enctype="multipart/form-data" action="<?= $path('/user/create', 'POST') ?>" method="post">
     <fieldset>
         <div class="control-group">
             <label class="control-label" for="username">Username :</label>
@@ -72,6 +72,20 @@
                 <span class="help-inline">
                     <ul>
                         <?php foreach ($var('email::errors', []) as $error): ?>
+                            <li><?= $error ?></li>
+                        <?php endforeach; ?>
+                    </ul>
+                </span>
+            </div>
+        </div>
+        <div class="control-group">
+            <label class="control-label" for="avatar">Avatar :</label>
+            <div class="controls">
+                <input type="hidden" name="MAX_FILE_SIZE" value="10000000" />
+                <input type="file" id="avatar" name="avatar" value="<?= $var('avatar', '') ?>" />
+                <span class="help-inline">
+                    <ul>
+                        <?php foreach ($var('avatar::errors', []) as $error): ?>
                             <li><?= $error ?></li>
                         <?php endforeach; ?>
                     </ul>
