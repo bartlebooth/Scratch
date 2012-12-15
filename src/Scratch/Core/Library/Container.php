@@ -11,12 +11,13 @@ class Container implements ArrayAccess
     private $modules;
     private $services;
 
-    public function __construct($env, array $config, array $routing, array $modules, array $listeners) {
+    public function __construct($env, array $config, array $routing, array $modules, array $listeners, $requestError = null) {
         $this->modules = $modules;
         $container = $this;
         $this->services = [
             'env' => $env,
             'config' => $config,
+            'requestError' => $requestError ?: false,
             'dispatch' => function ($eventName, $event) use ($listeners, $container) {
                 if (isset($listeners[$eventName])) {
                     foreach ($listeners[$eventName] as $listener) {

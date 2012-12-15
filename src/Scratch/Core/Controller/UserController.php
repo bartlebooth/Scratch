@@ -3,20 +3,19 @@
 namespace Scratch\Core\Controller;
 
 use Scratch\Core\Library\Controller;
+use Scratch\Core\Library\PostLimitException;
 use Scratch\Core\Library\ValidationException;
 
 class UserController extends Controller
 {
     public function creationForm()
     {
-        $this->container['core::masterPage']()
-            ->setSectionTitle('Create user')
-            ->setBody(__DIR__.'/../Resources/templates/user_form.html.php')
-            ->display();
+        $this->displayForm();
     }
 
     public function create()
     {
+        /*
         if (!isset($_FILES['avatar'])) {
             if (in_array($_SERVER['REQUEST_METHOD'], array('POST', 'PUT'))) {
                 if (empty($_POST) && empty($_FILES)) {
@@ -82,20 +81,27 @@ class UserController extends Controller
                 }
             }
         }
-        die;
-
-        header('cache-control: no-cache');
-        $data = $this->filter($_POST);
+        */
 
         try {
+            header('cache-control: no-cache');
+            $this->throwExceptionOnRequestError();
+            $data = $this->filter($_POST);
             $this->container['core::model']('Scratch/Core', 'UserModel')->createUser($data);
             $_SESSION['flashes']['success'][] = 'User created';
-            $this->creationForm();
+            $this->displayForm();
+        } catch (PostLimitException $ex) {
+            $this->displayForm(['avatar::errors' => ['File is too large']]);
         } catch (ValidationException $ex) {
-            $this->container['core::masterPage']()
-                ->setSectionTitle('Create user')
-                ->setBody(__DIR__.'/../Resources/templates/user_form.html.php', array_merge($data, $ex->getViolations()))
-                ->display();
+            $this->displayForm(array_merge($data, $ex->getViolations()));
         }
+    }
+
+    private function displayForm(array $data = [])
+    {
+        $this->container['core::masterPage']()
+            ->setSectionTitle('Create user')
+            ->setBody(__DIR__.'/../Resources/templates/user_form.html.php', $data)
+            ->display();
     }
 }
