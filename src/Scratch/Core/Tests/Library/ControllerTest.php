@@ -4,16 +4,23 @@ namespace Scratch\Core\Library;
 
 class ControllerTest extends \PHPUnit_Framework_TestCase
 {
-    public function testFilterTrimStringValues()
+    private $controller;
+
+    protected function setUp()
     {
-        $controller = new Controller();
-        $data = $controller->filter([
+        $this->controller = new Controller();
+        $this->controller->setContainer((new Client())->getContainer());
+    }
+
+    public function testGetPostedDataTrimStringValues()
+    {
+        $_POST = [
             'foo' => 'a  ',
             'bar' => ' b',
             'baz' => [
                 'bat' => '  y  '
             ]
-        ]);
+        ];
         $expected = [
             'foo' => 'a',
             'bar' => 'b',
@@ -21,13 +28,12 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
                 'bat' => 'y'
             ]
         ];
-        $this->assertEquals($expected, $data);
+        $this->assertEquals($expected, $this->controller->getPostedData());
     }
 
-    public function testFilterRemoveEmptyValues()
+    public function testGetPostedDataRemoveEmptyValues()
     {
-        $controller = new Controller();
-        $data = $controller->filter([
+        $_POST = [
             'foo' => 'a',
             'bar' => '',
             'baz' => [
@@ -35,13 +41,13 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
                 'bat' => 'b'
             ],
             'bag' => []
-        ]);
+        ];
         $expected = [
             'foo' => 'a',
             'baz' => [
                 'bat' => 'b'
             ]
         ];
-        $this->assertEquals($expected, $data);
+        $this->assertEquals($expected, $this->controller->getPostedData());
     }
 }

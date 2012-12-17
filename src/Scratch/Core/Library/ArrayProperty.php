@@ -3,6 +3,7 @@
 namespace Scratch\Core\Library;
 
 use \Exception;
+use \LogicException;
 use \InvalidArgumentException;
 use \Closure;
 
@@ -16,16 +17,22 @@ class ArrayProperty
     private $value;
     private $hasScalarValue;
     private $scalarValue;
-    private $ignoreViolations;
+    private $ignoreConstraints;
     private $violations;
 
-    public function __construct($name, $value, $ignoreViolations = false)
+    public function __construct($name, $value, $ignoreConstraints = false, $notBlankViolation = false)
     {
         $this->name = $name;
         $this->value = $value;
         $this->hasScalarValue = false;
-        $this->ignoreViolations = $ignoreViolations;
+        $this->ignoreConstraints = $ignoreConstraints;
         $this->violations = [];
+
+        if ($notBlankViolation && !$ignoreConstraints) {
+            throw new LogicException('Constraints must be ignored if the property is blank.');
+        }
+
+        $notBlankViolation && ($this->violations[] = 'Not blank');
     }
 
     public function getName()
@@ -33,30 +40,26 @@ class ArrayProperty
         return $this->name;
     }
 
-    public function getValue()
+    public function getValue($forceScalar = false)
     {
-        try {
+        if ($forceScalar) {
             return $this->getScalarValue();
-        } catch (Exception $ex) {
-            if ($ex->getCode() === self::NO_SCALAR_VALUE) {
-                return $this->value;
-            }
-
-            throw $ex;
         }
+
+        return $this->value;
     }
 
     public function getViolations()
     {
-        if ($this->ignoreViolations) {
-            return [];
-        }
-
         return $this->violations;
     }
 
     public function toBeString($minLength = null, $maxLength = null)
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         $this->checkStringLengthConstraint($minLength, $maxLength);
 
         return $this;
@@ -64,6 +67,10 @@ class ArrayProperty
 
     public function toBeAlphanumeric($minLength = null, $maxLength = null)
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         $this->checkStringLengthConstraint($minLength, $maxLength);
 
         if (0 === preg_match('#^[a-zA-Z0-9]+$#', $this->getScalarValue())) {
@@ -75,6 +82,10 @@ class ArrayProperty
 
     public function toMatch($pattern, $errorMessage)
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         if (0 === preg_match($pattern, $this->getScalarValue())) {
             $this->violations[] = $errorMessage;
         }
@@ -84,6 +95,10 @@ class ArrayProperty
 
     public function toBeConfirmed()
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         if (!is_array($this->value)) {
             throw new Exception('Constraint unapplicable : property must be an array of values.', self::INVALID_VALUE_TYPE);
         }
@@ -107,6 +122,10 @@ class ArrayProperty
 
     public function toBeUnique(Closure $isUnique)
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         if (true !== $isUnique($this->getScalarValue())) {
             $this->violations[] = 'Already used';
         }
@@ -116,7 +135,27 @@ class ArrayProperty
 
     public function toBeEmail()
     {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
         return $this->toMatch('#^[A-Z0-9_%\+-]+@[A-Z0-9\.-]+\.[A-Z]{2,6}$#i', 'Email address is not valid');
+    }
+
+    public function toBeFile($size = null, array $allowedMimeTypes = null)
+    {
+        if ($this->ignoreConstraints) {
+            return $this;
+        }
+
+        if (!is_array($this->value) || !isset($this->value['name']) || !isset($this->value['type'])
+            || !isset($this->value['tmp_name']) || !isset($this->value['error']) || !isset($this->value['size'])) {
+            $this->violations[] = 'Invalid file data';
+
+            return $this;
+        }
+
+
     }
 
     private function getScalarValue()

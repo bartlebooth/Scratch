@@ -8,6 +8,34 @@ use Scratch\Core\Library\ValidationException;
 
 class UserController extends Controller
 {
+    public function testForm()
+    {
+        $this->container['core::masterPage']()
+            ->setSectionTitle('Test')
+            ->setBody(__DIR__.'/../Resources/templates/test_form.html.php')//, $data)
+            ->display();
+    }
+
+    public function test()
+    {
+        var_dump($_POST);
+        //var_dump($_FILES);
+
+        $validator = $this->container['core::validator']();
+        $validator->setProperties($_POST);
+
+        $validator->expect('text');
+        $validator->expect('password');
+        $validator->expect('select');
+        $validator->expect('selectMultiple');
+        $validator->expect('checkedRadio');
+        $validator->expect('uncheckedRadio');
+        $validator->expect('checkedBoxes');
+        $validator->expect('uncheckedBoxes');
+
+        var_dump($validator->getViolations());
+    }
+
     public function creationForm()
     {
         $this->displayForm();
@@ -85,8 +113,9 @@ class UserController extends Controller
 
         try {
             header('cache-control: no-cache');
-            $this->throwExceptionOnRequestError();
-            $data = $this->filter($_POST);
+            //$this->throwExceptionOnRequestError();
+            $data = $this->getPostedData();
+            var_dump($data); die;
             $this->container['core::model']('Scratch/Core', 'UserModel')->createUser($data);
             $_SESSION['flashes']['success'][] = 'User created';
             $this->displayForm();

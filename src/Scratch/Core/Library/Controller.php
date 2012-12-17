@@ -17,7 +17,20 @@ class Controller extends ContainerAware
         }
     }
 
-    public function filter(array $data)
+    public function getPostedData()
+    {
+        if (false !== $requestError = $this->container['requestError']) {
+            if (preg_match('#POST Content-Length of \d+ bytes exceeds the limit of \d+ bytes#', $requestError['message'])) {
+                throw new PostLimitException();
+            }
+
+            throw new Exception($requestError['message']);
+        }
+
+        return array_merge($this->filter($_POST), $_FILES);
+    }
+
+    private function filter(array $data)
     {
         $properties = [];
 

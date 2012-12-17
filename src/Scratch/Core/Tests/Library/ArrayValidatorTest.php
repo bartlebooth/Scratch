@@ -22,8 +22,7 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
 
     public function testDefaultValuesAreAllowed()
     {
-        $this->validator->setProperties([]);
-        $this->validator->setDefaults(['foo' => 'bar']);
+        $this->validator->setProperties([], ['foo' => 'bar']);
         $this->assertEquals('bar', $this->validator->getProperty('foo'));
     }
 
@@ -37,27 +36,46 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         }
     }
 
-    public function testAnExceptionIsThrownIfANonGivenPropertyWithNoDefaultIsExpected()
+    public function testAPropertyWithNullValueAndNotBlankViolationIsReturnedIfANonGivenPropertyWithNoDefaultIsExpected()
     {
-        try {
-            $this->validator->expect('unknown')->toBeString();
-            $this->fail('No exception thrown');
-        } catch (Exception $ex) {
-            $this->assertEquals(ArrayValidator::UNKNOWN_PROPERTY, $ex->getCode());
-        }
+        $property = $this->validator->expect('unknown');
+        $this->assertEquals(null, $property->getValue());
+        $this->assertEquals(1, count($property->getViolations()));
+        $this->assertEquals('Not blank', $property->getViolations()[0]);
+    }
+
+    /**
+     * @dataProvider emptyValueProvider
+     */
+    public function testAPropertyWithNotBlankViolationIsReturnedIfAPropertyWithEmptyValueAndNoDefaultIsExpected($value)
+    {
+        $this->validator->setProperties(['empty' => $value]);
+        $property = $this->validator->expect('empty');
+        $this->assertEquals(1, count($property->getViolations()));
+        $this->assertEquals('Not blank', $property->getViolations()[0]);
+    }
+
+    /**
+     * @dataProvider emptyValueWithDefaultProvider
+     */
+    public function testAPropertyFilledWithDefaultAndIgnoringConstraintsIsReturnedIfAPropertyWithEmptyValueAndDefaultIsExpected($value, $default)
+    {
+        $this->validator->setProperties(['empty' => $value], ['empty' => $default]);
+        $property = $this->validator->expect('empty')->toBeEmail()->toBeConfirmed();
+        $this->assertEquals($default, $property->getValue());
+        $this->assertEquals(0, count($property->getViolations()));
     }
 
     public function testViolationsAreIgnoredOnNonGivenPropertyWithDefaultValue()
     {
-        $this->validator->setDefaults(['foo' => null]);
+        $this->validator->setProperties([], ['foo' => null]);
         $this->validator->expect('foo')->toBeAlphanumeric(10, 20);
         $this->assertEquals(0, count($this->validator->getViolations()));
     }
 
     public function testConstraintIsAppliedOnGivenPropertyEvenIfADefaultValueIsProvided()
     {
-        $this->validator->setDefaults(['foo' => 'bar']);
-        $this->validator->setProperties(['foo' => 'abcdef']);
+        $this->validator->setProperties(['foo' => 'abcdef'], ['foo' => 'bar']);
         $this->validator->expect('foo')->toBeAlphanumeric(1, 4);
         $this->assertEquals(1, count($this->validator->getViolations()));
     }
@@ -77,5 +95,29 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         $this->validator->setProperties(['foo' => '*$~~']);
         $this->validator->expect('foo')->toBeAlphanumeric();
         $this->validator->throwViolations();
+    }
+
+    public function emptyValueProvider()
+    {
+        return [
+            [''],
+            [null],
+            [[]],
+            [[null]],
+            [['', '']],
+            [[null, null]],
+        ];
+    }
+
+    public function emptyValueWithDefaultProvider()
+    {
+        return [
+            ['', 'foo'],
+            [null, 'bar'],
+            [[], ['foo', 'bar']],
+            [[null], ['foo']],
+            [['', ''], [null]],
+            [[null, null], ['foo']],
+        ];
     }
 }

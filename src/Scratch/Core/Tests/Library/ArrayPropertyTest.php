@@ -4,13 +4,46 @@ namespace Scratch\Core\Library;
 
 class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
 {
+    public function testConstraintsCanBeIgnoredForPropertiesWithDefaultValue()
+    {
+        $property = new ArrayProperty('foo', 'bar', true);
+        $property->toBeEmail()->toBeConfirmed();
+        $this->assertEquals([], $property->getViolations());
+    }
+
+    public function testPropertyCanBeInitializedWithNotBlankViolation()
+    {
+        $property = new ArrayProperty('foo', 'bar', true, true);
+        $this->assertEquals(['Not blank'], $property->getViolations());
+    }
+
+    public function testAnExceptionIsThrownIfConstraintsAreNotIgnoredOnNotBlankViolation()
+    {
+        $this->setExpectedException('LogicException');
+        new ArrayProperty('foo', 'bar', false, true);
+    }
+
     /**
      * @dataProvider nonScalarValueProvider
      */
-    public function testGetValueReturnsFirstScalarValueIfAny($value, $scalarValue)
+    public function testGetValueCanTryToForceFirstScalarValueForCompositeValues($value, $scalarValue)
     {
         $property = new ArrayProperty('foo', $value);
-        $this->assertEquals($scalarValue, $property->getValue());
+        $this->assertEquals($scalarValue, $property->getValue(true));
+    }
+
+    /**
+     * @dataProvider nonForcableScalarValueProvider
+     */
+    public function testGetValueThrowsAnExceptionIfNonScalarValueCannotBeForcedToScalar($value)
+    {
+        try {
+            $property = new ArrayProperty('foo', $value);
+            $property->getValue(true);
+            $this->fail('No exception thrown');
+        } catch (\Exception $ex) {
+            $this->assertEquals(ArrayProperty::NO_SCALAR_VALUE, $ex->getCode());
+        }
     }
 
     /**
@@ -112,9 +145,15 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
         return [
             [['bar'], 'bar'],
             [[['bar'], 'baz'], 'baz'],
-            [$object, 'bar'],
-            [[], []],
+            [$object, 'bar']
+        ];
+    }
 
+    public function nonForcableScalarValueProvider()
+    {
+        return [
+            [new \stdClass()],
+            [[]],
         ];
     }
 

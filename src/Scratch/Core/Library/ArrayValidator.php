@@ -15,41 +15,51 @@ class ArrayValidator
         $this->properties = [];
     }
 
-    public function setProperties(array $properties)
+    public function setProperties(array $properties, array $defaults = [])
     {
         $this->properties = [];
 
         foreach ($properties as $name => $value) {
-            $this->properties[$name] = new ArrayProperty($name, $value);
+            if ($this->isEmpty($value)) {
+                if (array_key_exists($name, $defaults)) {
+                    // use default when value is empty (other constraints will be ignored)
+                    $this->properties[$name] = new ArrayProperty($name, $defaults[$name], true);
+                    unset($defaults[$name]);
+                } else {
+                     // not blank violation when value is empty and has no default (other constraints will be ignored)
+                    $this->properties[$name] = new ArrayProperty($name, $value, true, true);
+                }
+            } else {
+                $this->properties[$name] = new ArrayProperty($name, $value);
+            }
         }
-    }
 
-    public function setDefaults(array $defaults)
-    {
         foreach ($defaults as $name => $value) {
             if (!isset($this->properties[$name])) {
-                $this->properties[$name] = new ArrayProperty($name, $value, true);
+                // use default when property is not set (other constraints will be ignored)
+                $this->properties[$name] = new ArrayProperty($name, $defaults[$name], true);
             }
         }
     }
 
-    public function getProperty($name)
+    // force scalar -> first scalar value or exception
+    public function getProperty($name, $forceScalar = false)
     {
         if (isset($this->properties[$name])) {
-            return $this->properties[$name]->getValue();
+            return $this->properties[$name]->getValue($forceScalar);
         }
 
-        throw new Exception("Property '{$name}' is not set and has no default.", self::UNKNOWN_PROPERTY);
+        throw new Exception("Property '{$name}' is not set, has no default and was not expected.", self::UNKNOWN_PROPERTY);
     }
 
     /**
-     * Returns the property to be validated.
+     * Returns the property to be validated. If the property is not set and has no default value,
+     * the returned property will have a null value, a not blank constraint violation and all
+     * constraints applied on it will be ignored.
      *
      * @param string $property
      *
      * @return ArrayProperty
-     *
-     * @throws Exception If property is not set and has no default was provided
      */
     public function expect($property)
     {
@@ -57,7 +67,7 @@ class ArrayValidator
             return $this->properties[$property];
         }
 
-        throw new Exception("Property '{$property}' is not set and has no default.", self::UNKNOWN_PROPERTY);
+        return $this->properties[$property] = new ArrayProperty($property, null, true, true);
     }
 
     public function getViolations()
@@ -80,5 +90,26 @@ class ArrayValidator
             $ex->setViolations($violations);
             throw $ex;
         }
+    }
+
+    private function isEmpty($value) {
+        if ($value === '' || $value === null) {
+            return true;
+        }
+
+        if (is_array($value)) {
+            $isEmpty = true;
+
+            foreach ($value as $element) {
+                if ($element !== '' && $element !== null) {
+                    $isEmpty = false;
+                    break;
+                }
+            }
+
+            return $isEmpty;
+        }
+
+        return false;
     }
 }

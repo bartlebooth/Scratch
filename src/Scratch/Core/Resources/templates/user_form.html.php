@@ -82,7 +82,7 @@
             <label class="control-label" for="avatar">Avatar :</label>
             <div class="controls">
                 <input type="hidden" name="MAX_FILE_SIZE" value="10000000" />
-                <input type="file" id="avatar" name="avatar" value="<?= $var('avatar', '') ?>" />
+                <input type="file" id="avatar" name="avatar" />
                 <span class="help-inline">
                     <ul>
                         <?php foreach ($var('avatar::errors', []) as $error): ?>
