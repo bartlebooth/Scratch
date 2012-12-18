@@ -7,7 +7,6 @@ use \RuntimeException;
 
 class Templating
 {
-    private $output;
     private $template;
     private $variables;
     private $var;
@@ -71,10 +70,18 @@ class Templating
             return $flashes;
         };
     }
-    public function render($template, array $variables = array(), $output = true)
+
+    public function render($template, array $variables = [])
     {
-        $this->output = $output;
-        $render = function ($template, array $variables = array()) use (&$render) {
+        ob_start();
+        $this->display($template, $variables);
+
+        return ob_get_clean();
+    }
+
+    public function display($template, array $variables = [])
+    {
+        $render = function ($template, array $variables = []) use (&$render) {
             $var = $this->var;
             $path = $this->path;
             $asset = $this->asset;
@@ -82,14 +89,11 @@ class Templating
             $flashes = $this->flashes;
             $this->template = $template;
             $this->variables = array_merge($this->variables, $variables);
-            ob_start();
             call_user_func(Closure::bind(function () use ($template, $render, $var, $path, $asset, $call, $flashes) {
                 require $template;
             }, null));
-
-            return $this->output ? ob_end_flush() : ob_get_clean();
         };
 
-        return $render($template, $variables);
+        $render($template, $variables);
     }
 }

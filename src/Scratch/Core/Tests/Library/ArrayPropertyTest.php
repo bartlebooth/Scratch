@@ -14,7 +14,7 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
     public function testPropertyCanBeInitializedWithNotBlankViolation()
     {
         $property = new ArrayProperty('foo', 'bar', true, true);
-        $this->assertEquals(['Not blank'], $property->getViolations());
+        $this->assertEquals(['This field is mandatory'], $property->getViolations());
     }
 
     public function testAnExceptionIsThrownIfConstraintsAreNotIgnoredOnNotBlankViolation()

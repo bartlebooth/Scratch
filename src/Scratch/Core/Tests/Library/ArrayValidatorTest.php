@@ -41,7 +41,7 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         $property = $this->validator->expect('unknown');
         $this->assertEquals(null, $property->getValue());
         $this->assertEquals(1, count($property->getViolations()));
-        $this->assertEquals('Not blank', $property->getViolations()[0]);
+        $this->assertEquals('This field is mandatory', $property->getViolations()[0]);
     }
 
     /**
@@ -52,7 +52,7 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
         $this->validator->setProperties(['empty' => $value]);
         $property = $this->validator->expect('empty');
         $this->assertEquals(1, count($property->getViolations()));
-        $this->assertEquals('Not blank', $property->getViolations()[0]);
+        $this->assertEquals('This field is mandatory', $property->getViolations()[0]);
     }
 
     /**

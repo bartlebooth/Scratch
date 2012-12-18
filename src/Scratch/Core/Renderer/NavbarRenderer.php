@@ -15,6 +15,6 @@ class NavbarRenderer
 
     public function render()
     {
-        return $this->templating->render(__DIR__ . '/../Resources/templates/navbar.html.php');
+        return $this->templating->display(__DIR__ . '/../Resources/templates/navbar.html.php');
     }
 }

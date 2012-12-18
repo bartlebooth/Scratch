@@ -32,7 +32,7 @@ class ArrayProperty
             throw new LogicException('Constraints must be ignored if the property is blank.');
         }
 
-        $notBlankViolation && ($this->violations[] = 'Not blank');
+        $notBlankViolation && ($this->violations[] = 'This field is mandatory');
     }
 
     public function getName()

@@ -8,17 +8,56 @@ use Scratch\Core\Library\ValidationException;
 
 class UserController extends Controller
 {
-    public function testForm()
+    public function testForm(array $data = [])
     {
-        $this->container['core::masterPage']()
-            ->setSectionTitle('Test')
-            ->setBody(__DIR__.'/../Resources/templates/test_form.html.php')//, $data)
-            ->display();
+        $collections = [
+            'select::items' => [
+                '1' => 'Option 1',
+                '2' => 'Option 2',
+                '3' => 'Option 3'
+            ],
+            'selectMultiple::items' => [
+                '1' => 'Option 4',
+                '2' => 'Option 5',
+                '3' => 'Option 6'
+            ],
+            'uncheckedRadio::items' => [
+                '1' => 'Option 7',
+                '2' => 'Option 8',
+                '3' => 'Option 9',
+            ],
+            'checkedRadio::items' => [
+                '1' => 'Option A',
+                '2' => 'Option B',
+                '3' => 'Option C',
+            ],
+            'uncheckedBoxes::items' => [
+                '1' => 'Option D',
+                '2' => 'Option E',
+                '3' => 'Option F',
+            ],
+            'checkedBoxes::items' => [
+                '1' => 'Option G',
+                '2' => 'Option H',
+                '3' => 'Option I',
+            ]
+        ];
+        $defaults = [
+            'selectMultiple' => ['1', '2'],
+            'checkedRadio' => '1',
+            'checkedBoxes' => ['1', '2']
+        ];
+        $this->container['core::templating']()->display(
+            __DIR__.'/../Resources/templates/test_form.html.php',
+            count($data) > 0 ?
+                array_merge($collections, $data) :
+                array_merge($collections, $defaults)
+        );
     }
 
     public function test()
     {
-        var_dump($_POST);
+        //var_dump($_POST);
         //var_dump($_FILES);
 
         $validator = $this->container['core::validator']();
@@ -33,7 +72,7 @@ class UserController extends Controller
         $validator->expect('checkedBoxes');
         $validator->expect('uncheckedBoxes');
 
-        var_dump($validator->getViolations());
+        $this->testForm(array_merge($_POST, $validator->getViolations()));
     }
 
     public function creationForm()

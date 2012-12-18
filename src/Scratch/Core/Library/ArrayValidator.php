@@ -22,11 +22,9 @@ class ArrayValidator
         foreach ($properties as $name => $value) {
             if ($this->isEmpty($value)) {
                 if (array_key_exists($name, $defaults)) {
-                    // use default when value is empty (other constraints will be ignored)
                     $this->properties[$name] = new ArrayProperty($name, $defaults[$name], true);
                     unset($defaults[$name]);
                 } else {
-                     // not blank violation when value is empty and has no default (other constraints will be ignored)
                     $this->properties[$name] = new ArrayProperty($name, $value, true, true);
                 }
             } else {
@@ -36,7 +34,6 @@ class ArrayValidator
 
         foreach ($defaults as $name => $value) {
             if (!isset($this->properties[$name])) {
-                // use default when property is not set (other constraints will be ignored)
                 $this->properties[$name] = new ArrayProperty($name, $defaults[$name], true);
             }
         }

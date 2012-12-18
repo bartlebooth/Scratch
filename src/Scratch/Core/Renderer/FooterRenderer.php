@@ -15,6 +15,6 @@ class FooterRenderer
 
     public function render()
     {
-        return $this->templating->render(__DIR__ . '/../Resources/templates/footer.html.php');
+        return $this->templating->display(__DIR__ . '/../Resources/templates/footer.html.php');
     }
 }

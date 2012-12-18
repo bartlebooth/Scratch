@@ -26,14 +26,14 @@ class HtmlPageBuilder
 
     public function setBody($template, array $variables = [])
     {
-        $this->body = $this->templating->render($template, $variables, false);
+        $this->body = $this->templating->render($template, $variables);
 
         return $this;
     }
 
     public function display()
     {
-        $this->templating->render($this->masterTemplate, [
+        $this->templating->display($this->masterTemplate, [
             'sectionTitle' => $this->sectionTitle,
             'body' => $this->body
         ]);
