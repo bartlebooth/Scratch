@@ -15,8 +15,7 @@ abstract class AbstractUserModel extends AbstractModel
      */
     final public function createUser(array $properties)
     {
-        $this->validator->setProperties($properties);
-        $this->validator->setDefaults(['email' => null]);
+        $this->validator->setProperties($properties, ['email' => null]);
         $this->validator->expect('username')
             ->toBeAlphanumeric(5, 60)
             ->toBeUnique(function ($username) {
@@ -28,13 +27,13 @@ abstract class AbstractUserModel extends AbstractModel
         $this->validator->expect('firstName')->toBeString(2, 60);
         $this->validator->expect('lastName')->toBeString(2, 60);
         $this->validator->expect('email')->toBeEmail();
-        $this->validator->expect('avatar')->toBeFile(1024, ['jpeg', 'png', 'gif']);
+        //$this->validator->expect('avatar')->toBeFile(1024, ['jpeg', 'png', 'gif']);
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
         $this->validator->throwViolations();
 
         return $this->doCreateUser(
             $this->validator->getProperty('username'),
-            $this->validator->getProperty('password'),
+            $this->validator->getProperty('password', true),
             $this->validator->getProperty('firstName'),
             $this->validator->getProperty('lastName'),
             $this->validator->getProperty('email'),

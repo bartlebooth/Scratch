@@ -18,7 +18,6 @@ class Templating
 
     public function __construct(Container $container, $frontScript, $webDir)
     {
-        $this->output = true;
         $this->variables = ['locale' => $container['config']['locale']];
         $env = $container['env'];
         $matchUrl = $container['match'];
@@ -70,12 +69,15 @@ class Templating
 
             return $flashes;
         };
-        $this->formRow = function ($type, $fieldName, $label, $forceArrayField = false) use ($var) {
-            $realFieldName = $forceArrayField ? "{$fieldName}[]" : $fieldName;
+        // conventions (::errors, ::items); options (size[file, textarea], disabled, arrayField)
+        $this->formRow = function ($type, $fieldName, $label, $options = []) use ($var) {
+            $realFieldName = isset($options['arrayField']) && $options['arrayField'] ? "{$fieldName}[]" : $fieldName;
+            $disabled = isset($options['disabled']) && $options['disabled'] ? 'disabled="disabled"' : '';
             $rowMask = '<div class="control-group">%s%s</div>';
             $labelMask = '<label class="control-label" for="%s">%s :</label>';
             $controlsMask = '<div class="controls">%s<span class="help-inline"><ul>%s</ul></span></div>';
             $inputMask = '<input type="%s" name="%s" value="%s" %s/>';
+            $textAreaMask = '<textarea name="%s" %s>%s</textarea>';
             $selectMask = '<select name="%s" %s>%s</select>';
             $optionMask = '<option value="%s" %s>%s</option>';
             $controls = '';
@@ -83,24 +85,28 @@ class Templating
 
             switch ($type) {
                 case 'text':
-                    $controls .= sprintf($inputMask, 'text', $realFieldName, $var($fieldName, ''), '');
+                    $controls .= sprintf($inputMask, 'text', $realFieldName, $var($fieldName, ''), $disabled);
                     break;
                 case 'password':
-                    $controls .= sprintf($inputMask, 'password', $realFieldName, '', '');
+                    $controls .= sprintf($inputMask, 'password', $realFieldName, '', $disabled);
+                    break;
+                case 'textarea':
+                    $size = isset($options['size']) ? "maxlength=\"{$options['size']}\" " : ' ';
+                    $controls .= sprintf($textAreaMask, $fieldName, $size . $disabled, $var($fieldName, ''));
                     break;
                 case 'select':
                 case 'selectMultiple':
-                    $options = '';
+                    $items = '';
 
                     foreach ($var("{$fieldName}::items") as $id => $item) {
                         $isSelected = $type === 'select' ?
                             $var($fieldName, false) && ($var($fieldName) == $id) :
                             is_array($var($fieldName, false)) && in_array($id, $var($fieldName));
-                        $options .= sprintf($optionMask, $id, $isSelected ? 'selected="selected"' : '', $item);
+                        $items .= sprintf($optionMask, $id, $isSelected ? 'selected="selected"' : '', $item);
                     }
 
-                    list($name, $multiple) = $type === 'select' ? [$fieldName, ''] : ["{$fieldName}[]", 'multiple="multiple"'];
-                    $controls .= sprintf($selectMask, $name, $multiple, $options);
+                    list($name, $multiple) = $type === 'select' ? [$fieldName, ''] : ["{$fieldName}[]", ' multiple="multiple"'];
+                    $controls .= sprintf($selectMask, $name, $disabled . $multiple, $items);
                     break;
                 case 'radio':
                 case 'checkbox':
@@ -109,10 +115,14 @@ class Templating
                             $var($fieldName, false) && ($var($fieldName) == $id) :
                             is_array($var($fieldName, false)) && in_array($id, $var($fieldName));
                         $name = $type === 'checkbox' ? "{$fieldName}[]" : $fieldName;
-                        $checked = $isChecked ? 'checked="checked"' : '';
-                        $controls .= sprintf($inputMask, $type, $name, $id, $checked) . $item;
+                        $checked = $isChecked ? ' checked="checked"' : '';
+                        $controls .= sprintf($inputMask, $type, $name, $id, $disabled . $checked) . $item;
                     }
 
+                    break;
+                case 'file':
+                    isset($options['size']) && $controls .= sprintf($inputMask, 'hidden', 'MAX_FILE_SIZE', $options['size'], '');
+                    $controls .= sprintf($inputMask, 'file', $fieldName, '', $disabled);
                     break;
             }
 
