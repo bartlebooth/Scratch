@@ -1,4 +1,4 @@
-<form id="user-creation-form" class="form-horizontal" enctype="multipart/form-data" action="<?= $path('/user/test', 'POST') ?>" method="post">
+<form id="test-form" class="form-horizontal" enctype="multipart/form-data" action="<?= $path('/user/test', 'POST') ?>" method="post">
     <fieldset>
         <?= $formRow('text', 'text', 'Text') ?>
         <?= $formRow('text', 'disabledText', 'Info (disabled)', ['disabled' => true]) ?>

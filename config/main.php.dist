@@ -25,5 +25,6 @@ return [
     ],
     'locale' => 'fr',
     'sessionDir' => __DIR__. '/../sessions',
-    'sessionLifetime' => null
+    'sessionLifetime' => null,
+    'fileDir' => __DIR__ . '/../files'
 ];

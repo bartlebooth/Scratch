@@ -2,9 +2,9 @@
 
 namespace Scratch\Core\Controller;
 
-use Scratch\Core\Library\ContainerAware;
+use Scratch\Core\Library\Controller;
 
-class AuthenticationController extends ContainerAware
+class AuthenticationController extends Controller
 {
     public function loginForm()
     {

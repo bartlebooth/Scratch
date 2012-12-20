@@ -2,9 +2,9 @@
 
 namespace Scratch\Demo\Controller;
 
-use Scratch\Core\Library\ContainerAware;
+use Scratch\Core\Library\Controller;
 
-class FooController extends ContainerAware
+class FooController extends Controller
 {
     public function index()
     {

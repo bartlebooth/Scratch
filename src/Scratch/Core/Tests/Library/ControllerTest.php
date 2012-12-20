@@ -30,24 +30,4 @@ class ControllerTest extends \PHPUnit_Framework_TestCase
         ];
         $this->assertEquals($expected, $this->controller->getPostedData());
     }
-
-    public function testGetPostedDataRemoveEmptyValues()
-    {
-        $_POST = [
-            'foo' => 'a',
-            'bar' => '',
-            'baz' => [
-                'bam' => ' ',
-                'bat' => 'b'
-            ],
-            'bag' => []
-        ];
-        $expected = [
-            'foo' => 'a',
-            'baz' => [
-                'bat' => 'b'
-            ]
-        ];
-        $this->assertEquals($expected, $this->controller->getPostedData());
-    }
 }

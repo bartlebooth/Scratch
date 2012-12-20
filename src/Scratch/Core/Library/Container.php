@@ -29,7 +29,7 @@ class Container implements ArrayAccess
                             if (!isset($listenerInstances[$listener])) {
                                 $listenerParts = explode('::', $listener);
                                 $listenerInstance = new $listenerParts[0];
-                                $listenerInstance instanceof ContainerAware && $listenerInstance->setContainer($container);
+                                $listenerInstance instanceof ContainerAwareInterface && $listenerInstance->setContainer($container);
                                 $listenerInstances[$listener] = [$listenerInstance, $listenerParts[1]];
                             }
 
@@ -62,7 +62,7 @@ class Container implements ArrayAccess
                                     } else {
                                         $controllerParts = explode('::', $controller);
                                         $controller = new $controllerParts[0];
-                                        $controller instanceof ContainerAware && $controller->setContainer($container);
+                                        $controller instanceof ContainerAwareInterface && $controller->setContainer($container);
 
                                         return call_user_func_array([$controller, $controllerParts[1]], $paramMatches);
                                     }

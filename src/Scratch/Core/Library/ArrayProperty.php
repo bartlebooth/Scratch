@@ -11,7 +11,8 @@ class ArrayProperty
 {
     const INVALID_VALUE_TYPE = 20;
     const INVALID_VALUE_COUNT = 21;
-    const NO_SCALAR_VALUE = 22;
+    const INVALID_FILE_DATA = 22;
+    const NO_SCALAR_VALUE = 23;
 
     private $name;
     private $value;
@@ -142,20 +143,55 @@ class ArrayProperty
         return $this->toMatch('#^[A-Z0-9_%\+-]+@[A-Z0-9\.-]+\.[A-Z]{2,6}$#i', 'Email address is not valid');
     }
 
-    public function toBeFile($size = null, array $allowedMimeTypes = null)
+    // File = array
+    // Mandatory keys: name, type, size, tmp_name
+    // Optional: error
+    public function toBeFile($maxSize = null, array $allowedMimeTypes = [])
     {
         if ($this->ignoreConstraints) {
             return $this;
         }
 
-        if (!is_array($this->value) || !isset($this->value['name']) || !isset($this->value['type'])
-            || !isset($this->value['tmp_name']) || !isset($this->value['error']) || !isset($this->value['size'])) {
-            $this->violations[] = 'Invalid file data';
-
-            return $this;
+        if (!is_array($this->value)) {
+            throw new Exception('Constraint unapplicable : property must be an array of values.', self::INVALID_VALUE_TYPE);
         }
 
+        if (!isset($this->value['name']) || !isset($this->value['type']) || !isset($this->value['size']) || !isset($this->value['tmp_name'])) {
+            throw new Exception(
+                'Constraint unapplicable : array file property must have the key "name", "type", "size" and "tmp_name".',
+                self::INVALID_FILE_DATA
+            );
+        }
 
+        if (isset($this->value['error'])) {
+            if ($this->value['error'] !== UPLOAD_ERR_OK) {
+                switch ($this->value['error']) {
+                    case UPLOAD_ERR_INI_SIZE:
+                    case UPLOAD_ERR_FORM_SIZE:
+                        return $this->violations[] = 'File is too large';
+                    case UPLOAD_ERR_NO_FILE:
+                        return $this->violations[] = 'This field is mandatory';
+                    case UPLOAD_ERR_PARTIAL:
+                        return $this->violations[] = 'Upload error';
+                    case UPLOAD_ERR_NO_TMP_DIR:
+                        return $this->violations[] = 'Server error (no tmp dir)';
+                    case UPLOAD_ERR_CANT_WRITE:
+                        return $this->violations[] = 'Server error (cannot write)';
+                    case UPLOAD_ERR_EXTENSION:
+                        return $this->violations[] = 'Server error (extension error)';
+                }
+            }
+        }
+
+        if (null !== $maxSize && $this->value['size'] > $maxSize) {
+            $this->violations[] = 'File is too large';
+        }
+
+        if (count($allowedMimeTypes) > 0 && !in_array($this->value['type'], $allowedMimeTypes)) {
+            $this->violations[] = 'Not allowed mime type';
+        }
+
+        return $this;
     }
 
     private function getScalarValue()

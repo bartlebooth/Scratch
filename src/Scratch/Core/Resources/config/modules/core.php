@@ -40,6 +40,7 @@ return function ($container) {
                         if ($models[$class] instanceof Scratch\Core\Library\AbstractModel) {
                             $models[$class]->setConnection($container['core::connection']());
                             $models[$class]->setValidator($container['core::validator']());
+                            $models[$class] instanceof Scratch\Core\Library\ContainerAwareInterface && $models[$class]->setContainer($container);
                         }
                     } else {
                         throw new Exception("Cannot find the model '{$model}' in package '{$package}' (driver : '{$dbConfig['driver']}').");

@@ -2,10 +2,18 @@
 
 namespace Scratch\Demo\Listener;
 
-use Scratch\Core\Library\ContainerAware;
+use Scratch\Core\Library\ContainerAwareInterface;
+use Scratch\Core\Library\Container;
 
-class FooListener extends ContainerAware
+class FooListener implements ContainerAwareInterface
 {
+    private $container;
+
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
     public function onFoo($event)
     {
         echo 'Foo event dispatched to Demo\Listener\Foo::onFoo with "' . $event . '"</br>';

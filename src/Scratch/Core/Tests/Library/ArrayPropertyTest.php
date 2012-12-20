@@ -136,6 +136,41 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
         $this->assertEquals($errors, $property->getViolations());
     }
 
+    public function testFileConstraintThrowsAnExceptionIfPropertyIsNotAnArray()
+    {
+        try {
+            $property = new ArrayProperty('foo', 'bar');
+            $property->toBeFile();
+            $this->fail('No exception thrown');
+        } catch (\Exception $ex) {
+            $this->assertEquals(ArrayProperty::INVALID_VALUE_TYPE, $ex->getCode());
+        }
+    }
+
+    /**
+     * @dataProvider invalidFileDataProvider
+     */
+    public function testFileConstraintThrowsAnExceptionIfFileArrayKeysAreMissing(array $file)
+    {
+        try {
+            $property = new ArrayProperty('file', $file);
+            $property->toBeFile();
+            $this->fail('No exception thrown');
+        } catch (\Exception $ex) {
+            $this->assertEquals(ArrayProperty::INVALID_FILE_DATA, $ex->getCode());
+        }
+    }
+
+    /**
+     * @dataProvider fileConstraintProvider
+     */
+    public function testFileConstraint(array $file, $maxSize, $allowedMimeTypes, array $violations)
+    {
+        $property = new ArrayProperty('file', $file);
+        $property->toBeFile($maxSize, $allowedMimeTypes);
+        $this->assertEquals($violations, $property->getViolations());
+    }
+
     public function nonScalarValueProvider()
     {
         $object = new \stdClass();
@@ -211,6 +246,32 @@ class ArrayPropertyTest extends \PHPUnit_Framework_TestCase
             ['foo@', ['Email address is not valid']],
             ['foo@bar', ['Email address is not valid']],
             ['foo@bar.', ['Email address is not valid']],
+        ];
+    }
+
+    public function invalidFileDataProvider()
+    {
+        return [
+            [[]],
+            [['name' => 'foo']],
+            [['name' => 'foo', 'type' => 'text/html']],
+            [['name' => 'foo', 'type' => 'text/html', 'size' => 123]],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/foo/bar/foo.html']],
+        ];
+    }
+
+    public function fileConstraintProvider()
+    {
+        return [
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 12345], 1234, [], ['File is too large']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123], 1234, ['text/foo', 'text/bar'], ['Not allowed mime type']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_INI_SIZE], 1234, [], ['File is too large']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_FORM_SIZE], 1234, [], ['File is too large']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_NO_FILE], 1234, [], ['This field is mandatory']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_PARTIAL], 1234, [], ['Upload error']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_NO_TMP_DIR], 1234, [], ['Server error (no tmp dir)']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_CANT_WRITE], 1234, [], ['Server error (cannot write)']],
+            [['name' => 'foo', 'type' => 'text/html', 'tmp_name' => '/bar/foo', 'size' => 123, 'error' => UPLOAD_ERR_EXTENSION], 1234, [], ['Server error (extension error)']],
         ];
     }
 }

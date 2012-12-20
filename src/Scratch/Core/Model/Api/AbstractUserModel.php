@@ -3,9 +3,18 @@
 namespace Scratch\Core\Model\Api;
 
 use Scratch\Core\Library\AbstractModel;
+use Scratch\Core\Library\ContainerAwareInterface;
+use Scratch\Core\Library\Container;
 
-abstract class AbstractUserModel extends AbstractModel
+abstract class AbstractUserModel extends AbstractModel implements ContainerAwareInterface
 {
+    private $container;
+
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
     /**
      * Creates a user.
      *
@@ -27,9 +36,15 @@ abstract class AbstractUserModel extends AbstractModel
         $this->validator->expect('firstName')->toBeString(2, 60);
         $this->validator->expect('lastName')->toBeString(2, 60);
         $this->validator->expect('email')->toBeEmail();
-        //$this->validator->expect('avatar')->toBeFile(1024, ['jpeg', 'png', 'gif']);
+        $this->validator->expect('avatar')->toBeFile(1000000, ['image/png', 'image/gif', 'image/jpeg']);
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
         $this->validator->throwViolations();
+
+        // just a test... (not recorded in db, not nullable...)
+        rename(
+            $this->validator->getProperty('avatar')['tmp_name'],
+            $this->container['config']['fileDir'] . '/' . $this->validator->getProperty('avatar')['name']
+        );
 
         return $this->doCreateUser(
             $this->validator->getProperty('username'),

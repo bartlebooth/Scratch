@@ -3,10 +3,18 @@
 namespace Scratch\Core\Listener;
 
 use \Exception;
-use Scratch\Core\Library\ContainerAware;
+use Scratch\Core\Library\ContainerAwareInterface;
+use Scratch\Core\Library\Container;
 
-class ExceptionListener extends ContainerAware
+class ExceptionListener implements ContainerAwareInterface
 {
+    private $container;
+
+    public function setContainer(Container $container)
+    {
+        $this->container = $container;
+    }
+
     public function onException(Exception $ex)
     {
         while (ob_get_level() > 0) {
