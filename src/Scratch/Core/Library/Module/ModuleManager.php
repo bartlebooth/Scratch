@@ -8,6 +8,7 @@ use Scratch\Core\Library\Module\Exception\UnknownModuleException;
 use Scratch\Core\Library\Module\Exception\UnloadableModuleException;
 use Scratch\Core\Library\Module\Exception\InvalidModuleClassException;
 use Scratch\Core\Library\Module\Exception\InvalidDependenciesDeclarationException;
+use Scratch\Core\Module\Core;
 
 class ModuleManager
 {
@@ -45,9 +46,9 @@ class ModuleManager
                     sprintf('Module "%s" does not extend %s', $moduleFqcn, self::MODULE_CLASS)
                 );
             }
-
             $this->modules[$moduleFqcn] = $this->doInjectModulesInto($rModule);
             $this->modules[$moduleFqcn]->setApplicationParameters($this->definitions, $this->configuration, $this->environment);
+            $this->modules[$moduleFqcn] instanceof Core && $this->modules[$moduleFqcn]->setModuleManager($this);
         }
 
         return $this->modules[$moduleFqcn];

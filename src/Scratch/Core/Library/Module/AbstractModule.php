@@ -23,17 +23,17 @@ abstract class AbstractModule
         $this->areParametersSet = true;
     }
 
-    public function getDefinitions()
+    final public function getDefinitions()
     {
         return $this->definitions;
     }
 
-    public function getConfiguration()
+    final public function getConfiguration()
     {
         return $this->configuration;
     }
 
-    public function getEnvironment()
+    final public function getEnvironment()
     {
         return $this->environment;
     }

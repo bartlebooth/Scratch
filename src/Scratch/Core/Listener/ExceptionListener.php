@@ -3,20 +3,21 @@
 namespace Scratch\Core\Listener;
 
 use \Exception;
-use Scratch\Core\Library\ContainerAwareInterface;
-use Scratch\Core\Library\Container;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Module\Core;
 
-class ExceptionListener implements ContainerAwareInterface
+class ExceptionListener implements ModuleConsumerInterface
 {
-    private $container;
+    private $coreModule;
 
-    public function setContainer(Container $container)
+    public function __construct(Core $module)
     {
-        $this->container = $container;
+        $this->coreModule = $module;
     }
 
     public function onException(Exception $ex)
     {
+
         while (ob_get_level() > 0) {
             ob_end_clean();
         }
@@ -39,10 +40,10 @@ class ExceptionListener implements ContainerAwareInterface
 
         http_response_code($code);
 
-        if ($this->container['env'] !== 'prod') {
+        if ($this->coreModule->getEnvironment() !== 'prod') {
             throw $ex;
         }
-
+        
         echo "<h1>Http error :</h1>
               <h3>{$code} {$text}</h3>
               <h4>(returned by Scratch)</h4>";

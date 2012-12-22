@@ -2,22 +2,22 @@
 
 namespace Scratch\Demo\Listener;
 
-use Scratch\Core\Library\ContainerAwareInterface;
-use Scratch\Core\Library\Container;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Module\Core;
 
-class FooListener implements ContainerAwareInterface
+class FooListener implements ModuleConsumerInterface
 {
-    private $container;
+    private $coreModule;
 
-    public function setContainer(Container $container)
+    public function __construct(Core $module)
     {
-        $this->container = $container;
+        $this->coreModule = $module;
     }
 
     public function onFoo($event)
     {
         echo 'Foo event dispatched to Demo\Listener\Foo::onFoo with "' . $event . '"</br>';
-        echo 'Listener accessing container param "env" : ' . $this->container['env'] . '</br>';
+        echo 'Listener accessing param "env" via core module : ' . $this->coreModule->getEnvironment() . '</br>';
 
       //var_dump($this->container);
     }
