@@ -1,24 +1,14 @@
 <?php
 
-use Scratch\Core\Library\Module\ModuleInterface;
+use Scratch\Core\Library\Module\AbstractModule;
 use Scratch\Core\Library\Module\ModuleConsumerInterface;
 
 /**
- * Invalid because dependencies must be returned in an array
+ * Invalid because dependencies must be type-hinted in the constructor.
  */
-class InvalidModule2 implements ModuleInterface, ModuleConsumerInterface
+class InvalidModule2 extends AbstractModule implements ModuleConsumerInterface
 {
-    public static function getConsumedModules()
-    {
-        return 'Foo\Bar';
-    }
-
-    public function __construct(Foo\Bar $module)
-    {
-        // ...
-    }
-
-    public function setApplicationParameters(array $definitions, array $config, $environment)
+    public function __construct($module1)
     {
         // ...
     }

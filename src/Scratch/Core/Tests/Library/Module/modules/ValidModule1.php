@@ -1,14 +1,10 @@
 <?php
 
-use Scratch\Core\Library\Module\ModuleInterface;
+use Scratch\Core\Library\Module\AbstractModule;
 
 /**
  * Simplest valid module.
  */
-class ValidModule1 implements ModuleInterface
+class ValidModule1 extends AbstractModule
 {
-    public function setApplicationParameters(array $definitions, array $config, $environment)
-    {
-        // ...
-    }
 }

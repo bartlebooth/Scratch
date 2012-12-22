@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Invalid because it doesn't implement ModuleInterface.
+ * Invalid because it doesn't extend AbstractModule.
  */
 class InvalidModule1
 {

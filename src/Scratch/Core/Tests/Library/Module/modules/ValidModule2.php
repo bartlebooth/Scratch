@@ -1,20 +1,12 @@
 <?php
 
-use Scratch\Core\Library\Module\ModuleInterface;
+use Scratch\Core\Library\Module\AbstractModule;
 use Scratch\Core\Library\Module\ModuleConsumerInterface;
 
 /**
- * Module declaring empty dependencies (useless but tolerated)
+ * Module implementing ModuleConsumerInterface but not declaring
+ * any dependency (useless but tolerated)
  */
-class ValidModule2 implements ModuleInterface, ModuleConsumerInterface
+class ValidModule2 extends AbstractModule implements ModuleConsumerInterface
 {
-    public static function getConsumedModules()
-    {
-        return [];
-    }
-
-    public function setApplicationParameters(array $definitions, array $config, $environment)
-    {
-        // ...
-    }
 }
