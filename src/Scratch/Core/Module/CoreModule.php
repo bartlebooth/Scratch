@@ -31,6 +31,13 @@ class CoreModule extends AbstractModule
      */
     private $routeSets = [];
 
+    /**
+     * Local cache of the instantiated listeners.
+     *
+     * @var array
+     */
+    private $listeners = [];
+
     private $connection;
     private $models = [];
     private $security;
@@ -51,9 +58,9 @@ class CoreModule extends AbstractModule
 
     /**
      * Given a path info and an HTTP method, searches for a matching route in the
-     * routing files. If the last param is set to false, returns whether a route
-     * was matched or not. If set to true, executes the matching controller or
-     * throws a 404 (not found) exception.
+     * routing files. If the last parameter is set to false, returns whether a
+     * route was matched or not. If set to true, executes the matching controller
+     * or throws a 404 (not found) exception.
      *
      * @param   string  $pathInfo   The pattern to be matched
      * @param   string  $method     The HTTP method
@@ -64,7 +71,7 @@ class CoreModule extends AbstractModule
     public function matchUrl($pathInfo, $method, $execute = true)
     {
         if (preg_match('#^/([^/]*)#', $pathInfo, $prefixMatches)) { // extract prefix
-            $routing = $this->getDefinitions()['routing'];
+            $routing = $this->definitions['routing'];
 
             if (isset($routing[$prefix = $prefixMatches[1]])) {
                 if (!isset($this->routeSets[$prefix])) {
@@ -85,7 +92,6 @@ class CoreModule extends AbstractModule
                             }
 
                             array_shift($paramMatches); // keep parameters only (remove whole string match)
-                            
                             $controllerParts = explode('::', $controller);
                             $controller = $this->moduleManager->createConsumer($controllerParts[0]); // create the controller and inject modules
 
@@ -103,25 +109,24 @@ class CoreModule extends AbstractModule
         throw new NotFoundException("No matching controller for path '{$pathInfo}' with method '{$method}'");
     }
 
+    /**
+     * Dispatches an event to every listener declared in the active packages
+     * definitions that is attached to the event name.
+     *
+     * @param string    $eventName  Name of the event to dispatch
+     * @param mixed     $event      Event to dispatch
+     */
     public function dispatch($eventName, $event)
     {
-        $listeners = $this->getDefinitions()['listeners'];
-
-        if (isset($listeners[$eventName])) {
-            foreach ($listeners[$eventName] as $listener) {
-                if ($listener instanceof Closure) {
-                    call_user_func($listener, $event);
-                } else {
-                    static $listenerInstances = [];
-
-                    if (!isset($listenerInstances[$listener])) {
-                        $listenerParts = explode('::', $listener);
-                        $listenerInstance = $this->moduleManager->createConsumer($listenerParts[0]);
-                        $listenerInstances[$listener] = [$listenerInstance, $listenerParts[1]];
-                    }
-
-                    call_user_func([$listenerInstances[$listener][0], $listenerInstances[$listener][1]], $event);
+        if (isset($this->definitions['listeners'][$eventName])) {
+            foreach ($this->definitions['listeners'][$eventName] as $listener) {
+                if (!isset($this->listeners[$listener])) {
+                    $listenerParts = explode('::', $listener);
+                    $listenerInstance = $this->moduleManager->createConsumer($listenerParts[0]);
+                    $this->listeners[$listener] = [$listenerInstance, $listenerParts[1]];
                 }
+
+                call_user_func([$this->listeners[$listener][0], $this->listeners[$listener][1]], $event);
             }
         }
     }

@@ -7,6 +7,11 @@ use Scratch\Core\Module\Exception\NotFoundException;
 
 require_once __DIR__ . '/controllers/Controller1.php';
 require_once __DIR__ . '/controllers/Controller2.php';
+require_once __DIR__ . '/controllers/Controller3.php';
+require_once __DIR__ . '/listeners/Listener1.php';
+require_once __DIR__ . '/listeners/Listener2.php';
+require_once __DIR__ . '/../../Library/Module/modules/ValidModule1.php';
+require_once __DIR__ . '/../../Library/Module/modules/ValidModule2.php';
 
 class CoreModuleTest extends \PHPUnit_Framework_TestCase
 {
@@ -83,6 +88,80 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
         ob_start();
         $core->matchUrl('/baz/bar/ab/123/bat/456', 'GET');
         $this->assertEquals('Bar with x = ab, y = 123 and z = 456', ob_get_clean());
+    }
+
+    public function testExecuteMatchUrlInjectsAnyNeededModuleIntoTheController()
+    {
+        $core = $this->buildCoreModule(
+            [
+                'routing' => ['bar' => __DIR__.'/routing/routing3.php'],
+                'modules' => ['ValidModule1', 'ValidModule2']
+            ],
+            [],
+            'test'
+        );
+        ob_start();
+        $core->matchUrl('/bar/foo', 'POST');
+        $this->assertEquals('Has modules of type ValidModule1 and ValidModule2', ob_get_clean());
+    }
+
+    public function testDispatchCallsEveryListenerAttachedToTheEvent()
+    {
+        $core = $this->buildCoreModule(
+            [
+                'listeners' => [
+                    'foo' => ['Listener1::onFoo', 'Listener2::onFoo']
+                ],
+                'modules' => ['ValidModule1', 'ValidModule2']
+            ],
+            [],
+            'test'
+        );
+        $event = new \stdClass();
+        $core->dispatch('foo', $event);
+        $this->assertEquals(2, count($event->listenerReferences));
+        $this->assertInstanceOf('Listener1', $event->listenerReferences[0]);
+        $this->assertInstanceOf('Listener2', $event->listenerReferences[1]);
+    }
+
+    public function testDispatchKeepsTheSameListenerInstanceForLaterCalls()
+    {
+        $core = $this->buildCoreModule(
+            [
+                'listeners' => [
+                    'foo' => ['Listener1::onFoo'],
+                    'bar' => ['Listener1::onBar']
+                ]
+            ],
+            [],
+            'test'
+        );
+        $firstEvent = new \stdClass();
+        $core->dispatch('foo', $firstEvent);
+        $this->assertInstanceOf('Listener1', $firstEvent->listenerReferences[0]);
+        $secondEvent = new \stdClass();
+        $core->dispatch('foo', $secondEvent);
+        $this->assertEquals($firstEvent->listenerReferences, $secondEvent->listenerReferences);
+    }
+
+    public function testDispatchInjectAnyNeededModuleIntoTheListener()
+    {
+        $core = $this->buildCoreModule(
+            [
+                'listeners' => [
+                    'foo' => ['Listener2::onFoo']
+                ],
+                'modules' => ['ValidModule1', 'ValidModule2']
+            ],
+            [],
+            'test'
+        );
+        $event = new \stdClass();
+        $core->dispatch('foo', $event);
+        $this->assertEquals(1, count($event->listenerReferences));
+        $this->assertInstanceOf('Listener2', $listener = $event->listenerReferences[0]);
+        $this->assertInstanceOf('ValidModule1', $listener->getModule1());
+        $this->assertInstanceOf('ValidModule2', $listener->getModule2());
     }
 
     private function buildCoreModule(array $definitions, array $config, $env)
