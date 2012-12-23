@@ -15,6 +15,13 @@ require_once __DIR__ . '/../../Library/Module/modules/ValidModule2.php';
 
 class CoreModuleTest extends \PHPUnit_Framework_TestCase
 {
+    public function testSetModuleManagerCanOnlyBeCalledOnce()
+    {
+        $this->setExpectedException('Scratch\Core\Library\Module\Exception\ParametersAlreadySetException');
+        $core = $this->buildCoreModule([], [], 'test');
+        $core->setModuleManager(new ModuleManager(['foo'], ['bar'], ['baz']));
+    }
+
     public function testMatchUrlChecksIfRouteIsDefined()
     {
         $core = $this->buildCoreModule(['routing' => []], [], 'test');
@@ -162,6 +169,46 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('Listener2', $listener = $event->listenerReferences[0]);
         $this->assertInstanceOf('ValidModule1', $listener->getModule1());
         $this->assertInstanceOf('ValidModule2', $listener->getModule2());
+    }
+
+    /**
+     * @dataProvider dbConfigProvider
+     */
+    public function testGetConnectionTriesToReturnsAPdoInstanceAccordingToConfigurationParameters(array $config, $env, $sqlState)
+    {
+        try {
+            $core = $this->buildCoreModule([], $config, $env);
+            $core->getConnection();
+            $this->fail('No exception thrown');
+        } catch (\PDOException $ex) {
+            $this->assertEquals($sqlState, $ex->getCode());
+        }
+    }
+
+    public function testGetConnectionMustKnowTheDriverSetInConfigurationParameters()
+    {
+        $this->setExpectedException('Scratch\Core\Module\Exception\UnknownDriverException');
+        $core = $this->buildCoreModule([], ['db' => ['driver' => 'FooDriver']], 'prod');
+        $core->getConnection();
+    }
+
+    public function dbConfigProvider()
+    {
+        return [
+            [
+                [
+                    'testDb' => [
+                        'driver' => 'MySQL',
+                        'host' => 'wrongHost',
+                        'database' => 'wrongDb',
+                        'user' => 'wrongUser',
+                        'password' => 'wrongPassword'
+                    ]
+                ],
+                'test',
+                2005
+            ]
+        ];
     }
 
     private function buildCoreModule(array $definitions, array $config, $env)

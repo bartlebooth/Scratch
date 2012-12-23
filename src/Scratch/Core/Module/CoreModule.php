@@ -6,7 +6,9 @@ use \PDO;
 use \Exception;
 use Scratch\Core\Library\Module\AbstractModule;
 use Scratch\Core\Library\Module\ModuleManager;
+use Scratch\Core\Library\Module\Exception\ParametersAlreadySetException;
 use Scratch\Core\Module\Exception\NotFoundException;
+use Scratch\Core\Module\Exception\UnknownDriverException;
 use Scratch\Core\Library\AbstractModel;
 use Scratch\Core\Library\Security;
 use Scratch\Core\Library\Templating;
@@ -38,21 +40,30 @@ class CoreModule extends AbstractModule
      */
     private $listeners = [];
 
+    /**
+     * Database connection instance.
+     *
+     * @var PDO
+     */
     private $connection;
+    
     private $models = [];
     private $security;
     private $templating;
     private $validator;
 
     /**
-     * Sets the module manager.
-     *
-     * @todo throw an exception if called more than once
+     * Sets the module manager. This method is intended to be called once by
+     * the module manager. Other calls will throw an exception.
      *
      * @param Scratch\Core\Library\Module\ModuleManager $manager
      */
     public function setModuleManager(ModuleManager $manager)
     {
+        if (isset($this->moduleManager)) {
+            throw new ParametersAlreadySetException('Module manager can only be set once');
+        }
+
         $this->moduleManager = $manager;
     }
 
@@ -66,7 +77,7 @@ class CoreModule extends AbstractModule
      * @param   string  $method     The HTTP method
      * @param   boolean $execute    Whether the controller is to be executed if a route is found
      * @return  mixed               Boolean value if $execute is false, controller return value otherwise
-     * @throws  NotFoundException   If $execute is true and no route was found
+     * @throws  NotFoundException   if $execute is true and no route was found
      */
     public function matchUrl($pathInfo, $method, $execute = true)
     {
@@ -131,14 +142,19 @@ class CoreModule extends AbstractModule
         }
     }
 
+    /**
+     * Returns a PDO connection according to database parameters declared in the main
+     * main configuration file.
+     *
+     * @return PDO
+     * @throws UnknownDriverException if the driver is not supported
+     */
     public function getConnection()
     {
         if (!isset($this->connection)) {
-            $config = $this->getConfiguration();
-            $dbConfig = $this->getEnvironment() == 'test' ? $config['testDb'] : $config['db'];
+            $dbConfig = $this->configuration[$this->environment === 'test' ? 'testDb' : 'db'];
 
-            switch ($dbConfig['driver']) {
-                // Must be PDO for transactions
+            switch ($dbConfig['driver']) { // Must be PDO for transactions
                 case 'MySQL':
                     $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']}";
                     $this->connection = new PDO($dsn, $dbConfig['user'], $dbConfig['password'], [
@@ -148,7 +164,7 @@ class CoreModule extends AbstractModule
                     ]);
                     break;
                 default:
-                    throw new Exception("Unknown driver '{$dbConfig['driver']}'");
+                    throw new UnknownDriverException("Unknown driver '{$dbConfig['driver']}'");
             }
         }
 

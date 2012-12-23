@@ -44,7 +44,7 @@ abstract class AbstractModule
      * @param   array   $definitions    Collection of definitions provided by the active packages
      * @param   array   $configuration  Main configuration of the application
      * @param   string  $environment    Environment of the application
-     * @throws  ParametersAlreadySetException If the application parameters are already set
+     * @throws  ParametersAlreadySetException if the application parameters are already set
      */
     final public function setApplicationParameters(array $definitions, array $configuration, $environment)
     {
