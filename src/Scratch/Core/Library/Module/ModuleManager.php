@@ -8,7 +8,7 @@ use Scratch\Core\Library\Module\Exception\UnknownModuleException;
 use Scratch\Core\Library\Module\Exception\UnloadableModuleException;
 use Scratch\Core\Library\Module\Exception\InvalidModuleClassException;
 use Scratch\Core\Library\Module\Exception\InvalidDependenciesDeclarationException;
-use Scratch\Core\Module\Core;
+use Scratch\Core\Module\CoreModule;
 
 class ModuleManager
 {
@@ -48,7 +48,10 @@ class ModuleManager
             }
             $this->modules[$moduleFqcn] = $this->doInjectModulesInto($rModule);
             $this->modules[$moduleFqcn]->setApplicationParameters($this->definitions, $this->configuration, $this->environment);
-            $this->modules[$moduleFqcn] instanceof Core && $this->modules[$moduleFqcn]->setModuleManager($this);
+
+            if ($this->modules[$moduleFqcn] instanceof CoreModule) {
+                $this->modules[$moduleFqcn]->setModuleManager($this);
+            }
         }
 
         return $this->modules[$moduleFqcn];

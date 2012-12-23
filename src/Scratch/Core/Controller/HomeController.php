@@ -8,6 +8,7 @@ class HomeController extends Controller
 {
     public function index()
     {
+        /*
         $user = $this->container['core::model']('Scratch/Core', 'UserModel')->getUserByCredentials('admin', 'admin');
         $user = $this->container['core::model']('Scratch/Core', 'UserModel')->getUserById(1);
         $user = $this->container['core::security']()->getUser();
@@ -18,6 +19,9 @@ class HomeController extends Controller
                 'sectionTitle' => 'Accueil',
                 'body' => print_r($user, true)
             ]
-        );
+        );*/
+
+        http_response_code(200);
+        echo '<h1>Accueil (tmp)</h1';
     }
 }

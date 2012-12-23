@@ -13,15 +13,15 @@ class UserModelTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-        $container = (new Client)->getContainer();
-        $this->model = $container['core::model']('Scratch\Core', 'UserModel');
-        $this->connection = $container['core::connection']();
-        $this->connection->beginTransaction();
+//        $container = (new Client)->getContainer();
+//        $this->model = $container['core::model']('Scratch\Core', 'UserModel');
+//        $this->connection = $container['core::connection']();
+//        $this->connection->beginTransaction();
     }
 
     protected function tearDown()
     {
-        $this->connection->rollback();
+        //$this->connection->rollback();
     }
 
     public function testCreateAndRetrieveUser()

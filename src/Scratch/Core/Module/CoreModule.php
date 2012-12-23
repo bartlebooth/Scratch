@@ -6,6 +6,7 @@ use \PDO;
 use \Exception;
 use Scratch\Core\Library\Module\AbstractModule;
 use Scratch\Core\Library\Module\ModuleManager;
+use Scratch\Core\Module\Exception\NotFoundException;
 use Scratch\Core\Library\AbstractModel;
 use Scratch\Core\Library\Security;
 use Scratch\Core\Library\Templating;
@@ -14,50 +15,81 @@ use Scratch\Core\Renderer\NavbarRenderer;
 use Scratch\Core\Renderer\FooterRenderer;
 use Scratch\Core\Library\HtmlPageBuilder;
 
-class Core extends AbstractModule
+class CoreModule extends AbstractModule
 {
+    /**
+     * Manager used to inject modules into controllers and listeners.
+     *
+     * @var ModuleManager
+     */
     private $moduleManager;
+
+    /**
+     * Local cache for the parsed routing files.
+     *
+     * @var array
+     */
+    private $routeSets = [];
+
     private $connection;
     private $models = [];
     private $security;
     private $templating;
     private $validator;
 
+    /**
+     * Sets the module manager.
+     *
+     * @todo throw an exception if called more than once
+     *
+     * @param Scratch\Core\Library\Module\ModuleManager $manager
+     */
     public function setModuleManager(ModuleManager $manager)
     {
         $this->moduleManager = $manager;
     }
 
+    /**
+     * Given a path info and an HTTP method, searches for a matching route in the
+     * routing files. If the last param is set to false, returns whether a route
+     * was matched or not. If set to true, executes the matching controller or
+     * throws a 404 (not found) exception.
+     *
+     * @param   string  $pathInfo   The pattern to be matched
+     * @param   string  $method     The HTTP method
+     * @param   boolean $execute    Whether the controller is to be executed if a route is found
+     * @return  mixed               Boolean value if $execute is false, controller return value otherwise
+     * @throws  NotFoundException   If $execute is true and no route was found
+     */
     public function matchUrl($pathInfo, $method, $execute = true)
     {
-        if (preg_match('#^/([^/]*)#', $pathInfo, $prefixMatches)) {
+        if (preg_match('#^/([^/]*)#', $pathInfo, $prefixMatches)) { // extract prefix
             $routing = $this->getDefinitions()['routing'];
 
-            if (isset($routing[$prefixMatches[1]])) {
-                static $routeSets = [];
-                $routeSet = isset($routeSets[$prefixMatches[1]]) ?
-                    $routeSets[$prefixMatches[1]] :
-                    $routeSets[$prefixMatches[1]] = require $routing[$prefixMatches[1]];
+            if (isset($routing[$prefix = $prefixMatches[1]])) {
+                if (!isset($this->routeSets[$prefix])) {
+                    $this->routeSets[$prefix] = require $routing[$prefix]; // load routing file
+                }
 
-                if (isset($routeSet[$method])) {
-                    $pathInfo = preg_replace('#.+(/)$#', substr($pathInfo, 0, strlen($pathInfo) - 1), $pathInfo);
+                if (isset($this->routeSets[$prefix][$method])) {
+                    for ($i = strlen($pathInfo) - 1; $i > 1 && $pathInfo[$i] === '/'; $i--) {
+                        $pathInfo = substr($pathInfo, 0, $i); // remove path info trailing slashes
+                    }
 
-                    foreach ($routeSet[$method] as $pattern => $controller) {
-                        if (preg_match("#^/{$prefixMatches[1]}{$pattern}$#", $pathInfo, $paramMatches)) {
+                    foreach ($this->routeSets[$prefix][$method] as $pattern => $controller) {
+                        $pattern = $pattern === '/' ? '' : $pattern;
+
+                        if (preg_match("#^/{$prefix}{$pattern}$#", $pathInfo, $paramMatches)) { // check if a route is matched and extract parameters
                             if (!$execute) {
                                 return true;
                             }
 
-                            array_shift($paramMatches);
+                            array_shift($paramMatches); // keep parameters only (remove whole string match)
+                            
+                            $controllerParts = explode('::', $controller);
+                            $controller = $this->moduleManager->createConsumer($controllerParts[0]); // create the controller and inject modules
 
-                            if ($controller instanceof \Closure) {
-                                call_user_func_array($controller, $paramMatches);
-                            } else {
-                                $controllerParts = explode('::', $controller);
-                                $controller = $this->moduleManager->createConsumer($controllerParts[0]);
-
-                                return call_user_func_array([$controller, $controllerParts[1]], $paramMatches);
-                            }
+                            return call_user_func_array([$controller, $controllerParts[1]], $paramMatches); // execute the controller
                         }
                     }
                 }
@@ -68,7 +100,7 @@ class Core extends AbstractModule
             return false;
         }
 
-        throw new Exception("No matching controller for path '{$pathInfo}' with method '{$method}'", 404);
+        throw new NotFoundException("No matching controller for path '{$pathInfo}' with method '{$method}'");
     }
 
     public function dispatch($eventName, $event)
