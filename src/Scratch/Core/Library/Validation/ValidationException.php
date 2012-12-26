@@ -1,6 +1,6 @@
 <?php
 
-namespace Scratch\Core\Library;
+namespace Scratch\Core\Library\Validation;
 
 class ValidationException extends \Exception
 {

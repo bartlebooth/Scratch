@@ -3,13 +3,13 @@
 namespace Scratch\Core\Module;
 
 use \PDO;
-use \Exception;
 use Scratch\Core\Library\Module\AbstractModule;
 use Scratch\Core\Library\Module\ModuleManager;
 use Scratch\Core\Library\Module\Exception\ParametersAlreadySetException;
 use Scratch\Core\Module\Exception\NotFoundException;
 use Scratch\Core\Module\Exception\UnknownDriverException;
-use Scratch\Core\Library\AbstractModel;
+use Scratch\Core\Module\Exception\UnknownPackageException;
+use Scratch\Core\Module\Exception\UnloadableModelException;
 use Scratch\Core\Library\Security;
 use Scratch\Core\Library\Templating;
 use Scratch\Core\Library\ArrayValidator;
@@ -17,10 +17,16 @@ use Scratch\Core\Renderer\NavbarRenderer;
 use Scratch\Core\Renderer\FooterRenderer;
 use Scratch\Core\Library\HtmlPageBuilder;
 
+/**
+ * Module providing the core services of the platform. It is built like any other
+ * module, but has a reference to the module manager which allows it to inject
+ * modules into instances of objects if needed (e.g. controllers/listeners/models
+ * that implement the ModuleConsumerInterface).
+ */
 class CoreModule extends AbstractModule
 {
     /**
-     * Manager used to inject modules into controllers and listeners.
+     * Manager used to inject modules into ModuleConsumerInterface instances.
      *
      * @var ModuleManager
      */
@@ -46,7 +52,12 @@ class CoreModule extends AbstractModule
      * @var PDO
      */
     private $connection;
-    
+
+    /**
+     * Local cache of the instantiated models.
+     *
+     * @var array
+     */
     private $models = [];
     private $security;
     private $templating;
@@ -71,7 +82,9 @@ class CoreModule extends AbstractModule
      * Given a path info and an HTTP method, searches for a matching route in the
      * routing files. If the last parameter is set to false, returns whether a
      * route was matched or not. If set to true, executes the matching controller
-     * or throws a 404 (not found) exception.
+     * or throws a 404 (not found) exception. If the controller implements the
+     * interface ModuleConsumerInterface, the modules it depends on are injected
+     * into it.
      *
      * @param   string  $pathInfo   The pattern to be matched
      * @param   string  $method     The HTTP method
@@ -121,8 +134,10 @@ class CoreModule extends AbstractModule
     }
 
     /**
-     * Dispatches an event to every listener declared in the active packages
-     * definitions that is attached to the event name.
+     * Dispatches an event to all the listeners declared in the active packages
+     * definitions that are attached to the event name. If the listeners implement
+     * the interface ModuleConsumerInterface, the modules they depends on are
+     * injected into them.
      *
      * @param string    $eventName  Name of the event to dispatch
      * @param mixed     $event      Event to dispatch
@@ -143,8 +158,8 @@ class CoreModule extends AbstractModule
     }
 
     /**
-     * Returns a PDO connection according to database parameters declared in the main
-     * main configuration file.
+     * Returns a PDO connection according to the database parameters declared in
+     * the main configuration file.
      *
      * @return PDO
      * @throws UnknownDriverException if the driver is not supported
@@ -154,7 +169,7 @@ class CoreModule extends AbstractModule
         if (!isset($this->connection)) {
             $dbConfig = $this->configuration[$this->environment === 'test' ? 'testDb' : 'db'];
 
-            switch ($dbConfig['driver']) { // Must be PDO for transactions
+            switch ($dbConfig['driver']) {
                 case 'MySQL':
                     $dsn = "mysql:host={$dbConfig['host']};dbname={$dbConfig['database']}";
                     $this->connection = new PDO($dsn, $dbConfig['user'], $dbConfig['password'], [
@@ -171,30 +186,32 @@ class CoreModule extends AbstractModule
         return $this->connection;
     }
 
+    /**
+     * Returns an instance of a model class according to the database driver declared
+     * in the main configuration file. If the model implements the interface
+     * ModuleConsumerInterface, the modules it depends on are injected into it.
+     *
+     * @param string $package   The package in which the model is defined (e.g. 'VendorX\PackageY')
+     * @param string $model     The name of the model class
+     * @return object
+     * @throws UnknownPackageException  if the package is unknown or inactive
+     * @throws UnloadableModelException if the model class cannot be loaded
+     */
     public function getModel($package, $model)
     {
-        $config = $this->getConfiguration();
-        $dbConfig = $this->getEnvironment() == 'test' ? $config['testDb'] : $config['db'];
+        $dbConfig = $this->configuration[$this->environment === 'test' ? 'testDb' : 'db'];
         $namespace = str_replace('/', '\\', $package);
         $class = "{$namespace}\Model\Driver\\{$dbConfig['driver']}\\{$model}";
 
         if (!isset($this->models[$class])) {
-            if (isset($config['packages'][$package]) && $config['packages'][$package] === true) {
-                if (file_exists($config['srcDir']. '/' . str_replace('\\', '/', $class) . '.php')) {
-                    $this->models[$class] = new $class;
-
-                    if ($this->models[$class] instanceof AbstractModel) {
-                        $this->models[$class]->setConnection($this->getConnection());
-                        $this->models[$class]->setValidator($this->getValidator());
-
-                        // must be fixed !!!!!!
-                        //$this->models[$class] instanceof Scratch\Core\Library\ContainerAwareInterface && $models[$class]->setContainer($container);
-                    }
+            if (isset($this->configuration['packages'][$package]) && $this->configuration['packages'][$package] === true) {
+                if (file_exists($this->configuration['srcDir']. '/' . str_replace('\\', '/', $class) . '.php')) {
+                    $this->models[$class] = $this->moduleManager->createConsumer($class);
                 } else {
-                    throw new Exception("Cannot find the model '{$model}' in package '{$package}' (driver : '{$dbConfig['driver']}').");
+                    throw new UnloadableModelException("Cannot find the model '{$model}' in package '{$package}' (driver : '{$dbConfig['driver']}').");
                 }
             } else {
-                throw new Exception("Package '{$package}' is not installed or inactive.");
+                throw new UnknownPackageException("Package '{$package}' is not installed or inactive.");
             }
         }
 

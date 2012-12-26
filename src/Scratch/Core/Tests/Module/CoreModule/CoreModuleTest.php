@@ -12,6 +12,8 @@ require_once __DIR__ . '/listeners/Listener1.php';
 require_once __DIR__ . '/listeners/Listener2.php';
 require_once __DIR__ . '/../../Library/Module/modules/ValidModule1.php';
 require_once __DIR__ . '/../../Library/Module/modules/ValidModule2.php';
+require_once __DIR__ . '/models/Vendor1/Package1/Model/Driver/Driver1/Model1.php';
+require_once __DIR__ . '/models/Vendor1/Package1/Model/Driver/Driver1/Model2.php';
 
 class CoreModuleTest extends \PHPUnit_Framework_TestCase
 {
@@ -190,6 +192,67 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('Scratch\Core\Module\Exception\UnknownDriverException');
         $core = $this->buildCoreModule([], ['db' => ['driver' => 'FooDriver']], 'prod');
         $core->getConnection();
+    }
+
+    public function testGetModelThrowsAnExceptionIfModelPackageIsUnknown()
+    {
+        $this->setExpectedException('Scratch\Core\Module\Exception\UnknownPackageException');
+        $core = new CoreModule();
+        $core->setApplicationParameters([], ['testDb' => ['driver' => 'Foo']], 'test');
+        $core->getModel('Foo\Bar', 'BazModel');
+    }
+
+    public function testGetModelThrowsAnExceptionIfModelPackageIsNotActive()
+    {
+        $this->setExpectedException('Scratch\Core\Module\Exception\UnknownPackageException');
+        $core = new CoreModule();
+        $core->setApplicationParameters(
+            [],
+            [
+                'testDb' => ['driver' => 'Foo'],
+                'packages' => ['Foo\Bar' => false]
+            ],
+            'test'
+        );
+        $core->getModel('Foo\Bar', 'BazModel');
+    }
+
+    public function testGetModelReturnsAnInstanceOfModelClass()
+    {
+        $core = $this->buildCoreModule(
+            [],
+            [
+                'testDb' => ['driver' => 'Driver1'],
+                'packages' => ['Vendor1\Package1' => true],
+                'srcDir' => __DIR__ . '/models'
+            ],
+            'test'
+        );
+        $model = $core->getModel('Vendor1\Package1', 'Model1');
+        $this->assertInstanceOf('Vendor1\Package1\Model\Driver\Driver1\Model1', $model);
+    }
+
+    public function testGetModelCallsModuleManagerToInjectModulesIntoModelIfNeeded()
+    {
+        $core = $this->buildCoreModule(
+            [
+                'modules' => ['ValidModule1']
+            ],
+            [
+                'testDb' => ['driver' => 'Driver1'],
+                'packages' => ['Vendor1\Package1' => true],
+                'srcDir' => __DIR__ . '/models'
+            ],
+            'test'
+        );
+        $model = $core->getModel('Vendor1\Package1', 'Model2');
+        $this->assertInstanceOf('Vendor1\Package1\Model\Driver\Driver1\Model2', $model);
+        $this->assertInstanceOf('ValidModule1', $model->getModule1());
+    }
+
+    public function testGetSecurity()
+    {
+        
     }
 
     public function dbConfigProvider()

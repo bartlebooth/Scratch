@@ -1,6 +1,6 @@
 <?php
 
-namespace Scratch\Core\Library;
+namespace Scratch\Core\Library\Validation;
 
 use \Exception;
 
@@ -91,7 +91,7 @@ class ArrayValidatorTest extends \PHPUnit_Framework_TestCase
 
     public function testViolationsCanBeThrownWithinAnException()
     {
-        $this->setExpectedException('Scratch\Core\Library\ValidationException');
+        $this->setExpectedException('Scratch\Core\Library\Validation\ValidationException');
         $this->validator->setProperties(['foo' => '*$~~']);
         $this->validator->expect('foo')->toBeAlphanumeric();
         $this->validator->throwViolations();

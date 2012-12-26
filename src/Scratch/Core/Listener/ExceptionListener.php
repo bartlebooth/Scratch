@@ -4,13 +4,13 @@ namespace Scratch\Core\Listener;
 
 use \Exception;
 use Scratch\Core\Library\Module\ModuleConsumerInterface;
-use Scratch\Core\Module\Core;
+use Scratch\Core\Module\CoreModule;
 
 class ExceptionListener implements ModuleConsumerInterface
 {
     private $coreModule;
 
-    public function __construct(Core $module)
+    public function __construct(CoreModule $module)
     {
         $this->coreModule = $module;
     }
@@ -43,7 +43,7 @@ class ExceptionListener implements ModuleConsumerInterface
         if ($this->coreModule->getEnvironment() !== 'prod') {
             throw $ex;
         }
-        
+
         echo "<h1>Http error :</h1>
               <h3>{$code} {$text}</h3>
               <h4>(returned by Scratch)</h4>";

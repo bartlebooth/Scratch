@@ -36,7 +36,7 @@ call_user_func(function (array $config, $env, $matchUrl) {
             $config,
             $env
         );
-        $coreModule = $moduleManager->getModule('Scratch\Core\Module\Core');
+        $coreModule = $moduleManager->getModule('Scratch\Core\Module\CoreModule');
         register_shutdown_function(function () use ($coreModule) {
             if ((null !== $error = error_get_last()) && $error['type'] === E_ERROR) {
                 $coreModule->dispatch('exception', new Exception("{$error['message']}, in {$error['file']} line {$error['line']}"));
