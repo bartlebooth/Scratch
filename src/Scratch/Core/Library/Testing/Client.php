@@ -1,29 +1,42 @@
 <?php
 
-namespace Scratch\Core\Library;
+namespace Scratch\Core\Library\Testing;
+
+use Scratch\Core\Library\Module\ModuleManager;
 
 class Client
 {
-    private $container;
+    /** @var ModuleManager */
+    private $moduleManager;
 
     public function __construct(array $config = null)
     {
-        $config = $config ? $config : require __DIR__ . '/../../../../config/main.php';
-        $routing = array();
-        $modules = array();
-        $listeners = array();
+        $config = $config ? $config : require __DIR__ . '/../../../../../config/main.php';
+        $routing = [];
+        $modules = [];
+        $listeners = [];
+        $translations = [];
 
         foreach ($config['packages'] as $package => $isActive) {
             $isActive && require "{$config['srcDir']}/{$package}/Resources/config/definitions.php";
         }
 
-        $this->container = new Container('test', $config, $routing, $modules, $listeners);
+        $this->moduleManager = new ModuleManager(
+            [
+                'routing' => $routing,
+                'modules' => $modules,
+                'listeners' => $listeners,
+                'translations' => $translations
+            ],
+            $config,
+            'test'
+        );
     }
 
     public function request($pathInfo, $method)
     {
         ob_start();
-        $this->container['match']($pathInfo, $method);
+        $this->moduleManager->getModule('Scratch\Core\Module\CoreModule')->matchUrl($pathInfo, $method);
 
         return [
             'headers' => xdebug_get_headers(),
@@ -32,8 +45,8 @@ class Client
         ];
     }
 
-    public function getContainer()
+    public function getModule($moduleFqcn)
     {
-        return $this->container;
+        return $this->moduleManager->getModule($moduleFqcn);
     }
 }

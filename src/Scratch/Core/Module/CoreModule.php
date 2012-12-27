@@ -11,10 +11,8 @@ use Scratch\Core\Module\Exception\UnknownDriverException;
 use Scratch\Core\Module\Exception\UnknownPackageException;
 use Scratch\Core\Module\Exception\UnloadableModelException;
 use Scratch\Core\Library\Security;
+use Scratch\Core\Library\Validation\ArrayValidator;
 use Scratch\Core\Library\Templating;
-use Scratch\Core\Library\ArrayValidator;
-use Scratch\Core\Renderer\NavbarRenderer;
-use Scratch\Core\Renderer\FooterRenderer;
 use Scratch\Core\Library\HtmlPageBuilder;
 
 /**
@@ -59,9 +57,21 @@ class CoreModule extends AbstractModule
      * @var array
      */
     private $models = [];
+
+    /**
+     * Security class instance.
+     *
+     * @var Scratch\Core\Library\Security
+     */
     private $security;
-    private $templating;
+
+    /**
+     * Array validator instance.
+     *
+     * @var Scratch\Core\Library\Validation\ArrayValidator
+     */
     private $validator;
+    private $templating;
 
     /**
      * Sets the module manager. This method is intended to be called once by
@@ -191,7 +201,7 @@ class CoreModule extends AbstractModule
      * in the main configuration file. If the model implements the interface
      * ModuleConsumerInterface, the modules it depends on are injected into it.
      *
-     * @param string $package   The package in which the model is defined (e.g. 'VendorX\PackageY')
+     * @param string $package   The package in which the model is defined (e.g. 'VendorX/PackageY')
      * @param string $model     The name of the model class
      * @return object
      * @throws UnknownPackageException  if the package is unknown or inactive
@@ -218,6 +228,11 @@ class CoreModule extends AbstractModule
         return $this->models[$class];
     }
 
+    /**
+     * Returns an instance of the Security class.
+     *
+     * @return Scratch\Core\Library\Security
+     */
     public function getSecurity()
     {
         if (!isset($this->security)) {
@@ -225,6 +240,20 @@ class CoreModule extends AbstractModule
         }
 
         return $this->security;
+    }
+
+    /**
+     * Returns an instance of the ArrayValidator class.
+     *
+     * @return Scratch\Core\Library\Validation\ArrayValidator
+     */
+    public function getValidator()
+    {
+        if (!isset($this->validator)) {
+            $this->validator = new ArrayValidator();
+        }
+
+        return $this->validator;
     }
 
     public function getTemplating()
@@ -239,29 +268,6 @@ class CoreModule extends AbstractModule
         }
 
         return $this->templating;
-    }
-
-    public function getValidator()
-    {
-        if (!isset($this->validator)) {
-            $this->validator = new ArrayValidator();
-        }
-
-        return $this->validator;
-    }
-
-    public function getNavbar()
-    {
-        $navbarRenderer = new NavbarRenderer($this->getTemplating());
-
-        return $navbarRenderer->render();
-    }
-
-    public function getFooter()
-    {
-        $footerRenderer = new FooterRenderer($this->getTemplating());
-
-        return $footerRenderer->render();
     }
 
     public function getMasterPage()

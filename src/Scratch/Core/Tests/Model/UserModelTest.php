@@ -2,7 +2,7 @@
 
 namespace Scratch\Core\Model\Api;
 
-use Scratch\Core\Library\Client;
+use Scratch\Core\Library\Testing\Client;
 
 class UserModelTest extends \PHPUnit_Framework_TestCase
 {
@@ -13,21 +13,19 @@ class UserModelTest extends \PHPUnit_Framework_TestCase
 
     protected function setUp()
     {
-//        $container = (new Client)->getContainer();
-//        $this->model = $container['core::model']('Scratch\Core', 'UserModel');
-//        $this->connection = $container['core::connection']();
-//        $this->connection->beginTransaction();
+        $core = (new Client)->getModule('Scratch\Core\Module\CoreModule');
+        $this->model = $core->getModel('Scratch/Core', 'UserModel');
+        $this->connection = $core->getConnection();
+        $this->connection->beginTransaction();
     }
 
     protected function tearDown()
     {
-        //$this->connection->rollback();
+        $this->connection->rollback();
     }
 
     public function testCreateAndRetrieveUser()
     {
-        $this->markTestSkipped('File validation must be finished');
-
         $user = [
             'username' => 'admin123',
             'password' => ['admin123', 'admin123'],

@@ -2,17 +2,20 @@
 
 namespace Scratch\Core\Model\Api;
 
-use Scratch\Core\Library\AbstractModel;
-use Scratch\Core\Library\ContainerAwareInterface;
-use Scratch\Core\Library\Container;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Module\CoreModule;
 
-abstract class AbstractUserModel extends AbstractModel implements ContainerAwareInterface
+abstract class AbstractUserModel implements ModuleConsumerInterface
 {
-    private $container;
+    protected $coreModule;
+    protected $connection;
+    protected $validator;
 
-    public function setContainer(Container $container)
+    public function __construct(CoreModule $coreModule)
     {
-        $this->container = $container;
+        $this->coreModule = $coreModule;
+        $this->connection = $coreModule->getConnection();
+        $this->validator = $coreModule->getValidator();
     }
 
     /**
@@ -36,15 +39,15 @@ abstract class AbstractUserModel extends AbstractModel implements ContainerAware
         $this->validator->expect('firstName')->toBeString(2, 60);
         $this->validator->expect('lastName')->toBeString(2, 60);
         $this->validator->expect('email')->toBeEmail();
-        $this->validator->expect('avatar')->toBeFile(1000000, ['image/png', 'image/gif', 'image/jpeg']);
+        //$this->validator->expect('avatar')->toBeFile(1000000, ['image/png', 'image/gif', 'image/jpeg']);
         //$this->validator->expect('platformMaskId')->toBeIn([1, 2, 3]);
         $this->validator->throwViolations();
 
         // just a test... (not recorded in db, not nullable...)
-        rename(
-            $this->validator->getProperty('avatar')['tmp_name'],
-            $this->container['config']['fileDir'] . '/' . $this->validator->getProperty('avatar')['name']
-        );
+        //rename(
+          //  $this->validator->getProperty('avatar')['tmp_name'],
+          //  $this->container['config']['fileDir'] . '/' . $this->validator->getProperty('avatar')['name']
+        //);
 
         return $this->doCreateUser(
             $this->validator->getProperty('username'),

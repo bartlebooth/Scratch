@@ -217,6 +217,22 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
         $core->getModel('Foo\Bar', 'BazModel');
     }
 
+    public function testGetModelThrowsAnExceptionIfModelClassIsNotLoadable()
+    {
+        $this->setExpectedException('Scratch\Core\Module\Exception\UnloadableModelException');
+        $core = new CoreModule();
+        $core->setApplicationParameters(
+            [],
+            [
+                'testDb' => ['driver' => 'Baz'],
+                'packages' => ['Foo\Bar' => true],
+                'srcDir' => __DIR__
+            ],
+            'test'
+        );
+        $core->getModel('Foo\Bar', 'SomeModel');
+    }
+
     public function testGetModelReturnsAnInstanceOfModelClass()
     {
         $core = $this->buildCoreModule(
@@ -252,7 +268,22 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
 
     public function testGetSecurity()
     {
-        
+        $core = $this->getMock('Scratch\Core\Module\CoreModule', ['getModel']);
+        $core->expects($this->once())
+            ->method('getModel')
+            ->with('Scratch/Core', 'UserModel')
+            ->will($this->returnValue(
+                $this->getMockBuilder('Scratch\Core\Model\Api\AbstractUserModel')
+                    ->disableOriginalConstructor()
+                    ->getMockForAbstractClass())
+            );
+        $this->assertInstanceOf('Scratch\Core\Library\Security', $core->getSecurity());
+    }
+
+    public function testGetValidator()
+    {
+        $core = new CoreModule();
+        $this->assertInstanceOf('Scratch\Core\Library\Validation\ArrayValidator', $core->getValidator());
     }
 
     public function dbConfigProvider()
