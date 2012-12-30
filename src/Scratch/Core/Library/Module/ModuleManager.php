@@ -17,13 +17,15 @@ class ModuleManager
 
     private $definitions;
     private $configuration;
+    private $context;
     private $environment;
     private $modules;
 
-    public function __construct(array $definitions, array $configuration, $environment)
+    public function __construct(array $definitions, array $configuration, $context, $environment)
     {
         $this->definitions = $definitions;
         $this->configuration = $configuration;
+        $this->context = $context;
         $this->environment = $environment;
         $this->modules = [];
     }
@@ -47,7 +49,7 @@ class ModuleManager
                 );
             }
             $this->modules[$moduleFqcn] = $this->doInjectModulesInto($rModule);
-            $this->modules[$moduleFqcn]->setApplicationParameters($this->definitions, $this->configuration, $this->environment);
+            $this->modules[$moduleFqcn]->setApplicationParameters($this->definitions, $this->configuration, $this->context, $this->environment);
 
             if ($this->modules[$moduleFqcn] instanceof CoreModule) {
                 $this->modules[$moduleFqcn]->setModuleManager($this);

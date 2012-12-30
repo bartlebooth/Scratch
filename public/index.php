@@ -34,6 +34,10 @@ call_user_func(function (array $config, $env, $matchUrl) {
         $moduleManager = new Scratch\Core\Library\Module\ModuleManager(
             ['routing' => $routing, 'modules' => $modules, 'listeners' => $listeners, 'translations' => $translations],
             $config,
+            [
+                'frontScript' => $_SERVER['SCRIPT_NAME'],
+                'requestError' => $requestError
+            ],
             $env
         );
         $coreModule = $moduleManager->getModule('Scratch\Core\Module\CoreModule');

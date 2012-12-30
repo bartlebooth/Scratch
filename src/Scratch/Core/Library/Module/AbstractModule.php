@@ -24,6 +24,13 @@ abstract class AbstractModule
     protected $configuration;
 
     /**
+     * Context of the application
+     *
+     * @var array
+     */
+    protected $context;
+
+    /**
      * Environment of the application.
      *
      * @var string
@@ -43,10 +50,11 @@ abstract class AbstractModule
      *
      * @param   array   $definitions    Collection of definitions provided by the active packages
      * @param   array   $configuration  Main configuration of the application
+     * @param   array   $context        Context the application
      * @param   string  $environment    Environment of the application
      * @throws  ParametersAlreadySetException if the application parameters are already set
      */
-    final public function setApplicationParameters(array $definitions, array $configuration, $environment)
+    final public function setApplicationParameters(array $definitions, array $configuration, array $context, $environment)
     {
         if ($this->areParametersSet) {
             throw new ParametersAlreadySetException('Application parameters can only be set once');
@@ -54,6 +62,7 @@ abstract class AbstractModule
 
         $this->definitions = $definitions;
         $this->configuration = $configuration;
+        $this->context = $context;
         $this->environment = $environment;
         $this->areParametersSet = true;
     }
@@ -63,7 +72,7 @@ abstract class AbstractModule
      *
      * @return array
      */
-    final public function getDefinitions()
+    public function getDefinitions()
     {
         return $this->definitions;
     }
@@ -73,9 +82,17 @@ abstract class AbstractModule
      *
      * @return array
      */
-    final public function getConfiguration()
+    public function getConfiguration()
     {
         return $this->configuration;
+    }
+
+    /**
+     * Returns the context of the application.
+     */
+    public function getContext()
+    {
+        return $this->context;
     }
 
     /**
@@ -83,7 +100,7 @@ abstract class AbstractModule
      *
      * @return string
      */
-    final public function getEnvironment()
+    public function getEnvironment()
     {
         return $this->environment;
     }

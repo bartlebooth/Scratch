@@ -12,7 +12,7 @@ class AbstractModuleTest extends \PHPUnit_Framework_TestCase
     {
         $this->setExpectedException('Scratch\Core\Library\Module\Exception\ParametersAlreadySetException');
         $module = new ValidModule1();
-        $module->setApplicationParameters(['modules' => ['ValidModule1']], ['locale' => 'en'], 'test');
-        $module->setApplicationParameters(['foo'], ['bar'], 'baz');
+        $module->setApplicationParameters(['modules' => ['ValidModule1']], ['locale' => 'en'], [], 'test');
+        $module->setApplicationParameters(['foo'], ['bar'], [], 'baz');
     }
 }

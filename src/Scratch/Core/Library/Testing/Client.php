@@ -29,6 +29,7 @@ class Client
                 'translations' => $translations
             ],
             $config,
+            [],
             'test'
         );
     }
