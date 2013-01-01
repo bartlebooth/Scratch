@@ -2,3 +2,5 @@
 <path><?= isset($path) && is_callable($path) ? 'ok' : 'ko '?></path>
 <asset><?= isset($asset) && is_callable($asset) ? 'ok' : 'ko '?></asset>
 <formRow><?= isset($formRow) && is_callable($formRow) ? 'ok' : 'ko '?></formRow>
+<call><?= isset($call) && is_callable($call) ? 'ok' : 'ko '?></call>
+<config><?= isset($config) && is_callable($config) ? 'ok' : 'ko '?></config>

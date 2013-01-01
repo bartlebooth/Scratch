@@ -14,6 +14,8 @@ require_once __DIR__ . '/../../Library/Module/modules/ValidModule1.php';
 require_once __DIR__ . '/../../Library/Module/modules/ValidModule2.php';
 require_once __DIR__ . '/models/Vendor1/Package1/Model/Driver/Driver1/Model1.php';
 require_once __DIR__ . '/models/Vendor1/Package1/Model/Driver/Driver1/Model2.php';
+require_once __DIR__ . '/renderers/Renderer1.php';
+require_once __DIR__ . '/renderers/Renderer2.php';
 
 class CoreModuleTest extends \PHPUnit_Framework_TestCase
 {
@@ -274,17 +276,31 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
         $this->assertInstanceOf('ValidModule1', $model->getModule1());
     }
 
+    public function testSession()
+    {
+        $core = $this->buildCoreModule(
+            [],
+            [
+                'sessionDir' => __DIR__ . '/session',
+                'sessionLifetime' => 123,
+            ],
+            [],
+            'test'
+        );
+
+        $this->assertEquals(PHP_SESSION_NONE, session_status());
+        $core->useSession();
+        $this->assertEquals(PHP_SESSION_ACTIVE, session_status());
+        $this->assertEquals(4, count(scandir(__DIR__ . '/session'))); // one session + . + .. + .gitempty
+        $_SESSION['foo'] = 'bar';
+        $core->destroySession();
+        $this->assertEquals(3, count(scandir(__DIR__ . '/session')));
+        $this->assertEquals([], $_SESSION);
+    }
+
     public function testGetSecurity()
     {
-        $core = $this->getMock('Scratch\Core\Module\CoreModule', ['getModel']);
-        $core->expects($this->once())
-            ->method('getModel')
-            ->with('Scratch/Core', 'UserModel')
-            ->will($this->returnValue(
-                $this->getMockBuilder('Scratch\Core\Model\Api\AbstractUserModel')
-                    ->disableOriginalConstructor()
-                    ->getMockForAbstractClass())
-            );
+        $core = new CoreModule();
         $this->assertInstanceOf('Scratch\Core\Library\Security', $core->getSecurity());
     }
 
@@ -292,6 +308,34 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
     {
         $core = new CoreModule();
         $this->assertInstanceOf('Scratch\Core\Library\Validation\ArrayValidator', $core->getValidator());
+    }
+
+    public function testGetTemplating()
+    {
+        $core = new CoreModule();
+        $this->assertInstanceOf('Scratch\Core\Library\Templating\Templating', $core->getTemplating());
+    }
+
+    public function testGetRenderer()
+    {
+        $core = $this->buildCoreModule([], [], [], 'test');
+        $renderer = $core->getRenderer('Renderer1');
+        $this->assertEquals('Renderer1 output', $renderer->render());
+    }
+
+    public function testGetRendererInjectModulesIntoRendererIfNeeded()
+    {
+        $core = $this->buildCoreModule(['modules' => ['ValidModule1']], [], [], 'test');
+        $renderer = $core->getRenderer('Renderer2');
+        $this->assertEquals('Renderer2 output', $renderer->render());
+        $this->assertInstanceOf('ValidModule1', $renderer->getModule1());
+    }
+
+    public function testGetRendererThrowsAnExceptionIfTheRendererDoesntImplementTheRendererInterface()
+    {
+        $this->setExpectedException('Scratch\Core\Module\Exception\UnexpectedRendererTypeException');
+        $core = $this->buildCoreModule([], [], [], 'test');
+        $core->getRenderer('ValidModule1');
     }
 
     public function dbConfigProvider()

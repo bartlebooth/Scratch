@@ -18,9 +18,9 @@ class ExceptionListener implements ModuleConsumerInterface
     public function onException(Exception $ex)
     {
 
-        while (ob_get_level() > 0) {
-            ob_end_clean();
-        }
+//        while (ob_get_level() > 0) {
+//            ob_end_clean();
+//        }
 
         // unset all previous headers !!!
 

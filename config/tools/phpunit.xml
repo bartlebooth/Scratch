@@ -22,9 +22,12 @@
 
     <filter>
         <whitelist>
+            <directory>../../config</directory>
             <directory>../../src</directory>
+            <directory>../../public</directory>
             <exclude>
-                <directory>../../src/*/*/Resources</directory>
+                <directory>../../src/*/*/Tests</directory>
+                <directory>../../src/*/*/Resources/translations</directory>
             </exclude>
         </whitelist>
     </filter>

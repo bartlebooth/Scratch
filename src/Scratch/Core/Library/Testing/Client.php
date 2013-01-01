@@ -29,7 +29,7 @@ class Client
                 'translations' => $translations
             ],
             $config,
-            [],
+            ['frontScript' => __FILE__],
             'test'
         );
     }

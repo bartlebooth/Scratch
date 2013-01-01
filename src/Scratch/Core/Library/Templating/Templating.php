@@ -8,6 +8,7 @@ use Scratch\Core\Module\CoreModule;
 use Scratch\Core\Library\Templating\Exception\UndefinedVariableException;
 use Scratch\Core\Module\Exception\NotFoundException;
 use Scratch\Core\Library\Templating\Exception\UnknownControlTypeException;
+use Scratch\Core\Library\Templating\Exception\UnknownConfigurationParameterException;
 
 /**
  * Class providing basic templating functionalities.
@@ -85,24 +86,8 @@ class Templating implements ModuleConsumerInterface
         $this->helpers = $this->getHelpers();
         $this->variables = [];
 
-        // add 'raw' helper
-        // add 'config' helper
         // add 'trans' helper
-        // add 'generic' helper
-
-//        $this->call = function ($renderer) use ($container) {
-//            $container[$renderer]();
-//        };
-//        $this->flashes = function () {
-//            $flashes = [];
-//
-//            if (isset($_SESSION['flashes'])) {
-//                 $flashes = $_SESSION['flashes'];
-//                 unset($_SESSION['flashes']);
-//            }
-//
-//            return $flashes;
-//        };
+        // add generic helper
     }
 
     /**
@@ -117,10 +102,14 @@ class Templating implements ModuleConsumerInterface
             $this->template = $template;
             $this->variables = array_merge($this->variables, $variables);
             $var = $this->helpers['var'];
+            $raw = $this->helpers['raw'];
             $path = $this->helpers['path'];
             $asset = $this->helpers['asset'];
             $formRow = $this->helpers['formRow'];
-            call_user_func(Closure::bind(function () use ($template, $render, $var, $path, $asset, $formRow) {
+            $call = $this->helpers['call'];
+            $config = $this->helpers['config'];
+            $flashes = $this->helpers['flashes'];
+            call_user_func(Closure::bind(function () use ($template, $render, $var, $raw, $path, $asset, $formRow, $call, $config, $flashes) {
                 require $template;
             }, null));
         };
@@ -129,7 +118,7 @@ class Templating implements ModuleConsumerInterface
     }
 
     /**
-     * Renders a template, returning the string output.
+     * Renders a template and returns the string output.
      *
      * @param string    $template   Pathname of the template to display
      * @param array     $variables  Variables to be passed to the template
@@ -137,7 +126,8 @@ class Templating implements ModuleConsumerInterface
      */
     public function render($template, array $variables = [])
     {
-        ob_start();
+        ob_start(function ($err) {
+                return error_get_last()['message'];});
         $this->display($template, $variables);
 
         return ob_get_clean();
@@ -152,6 +142,7 @@ class Templating implements ModuleConsumerInterface
     {
         return [
             'var' => $this->getVarHelper(),
+            'raw' => $this->getVarHelper(true),
             'path' => function ($pathInfo, $method = 'GET') {
                 if ($this->environment !== 'prod' && !$this->coreModule->matchUrl($pathInfo, $method, false)) {
                     throw new NotFoundException(
@@ -164,7 +155,28 @@ class Templating implements ModuleConsumerInterface
             'asset' => function ($assetFile) {
                 return $this->publicWebPath . $assetFile;
             },
-            'formRow' => $this->getFormRowHelper()
+            'formRow' => $this->getFormRowHelper(),
+            'config' => function ($parameter) {
+                if (isset($this->configuration[$parameter])) {
+                    return $this->configuration[$parameter];
+                }
+
+                throw new UnknownConfigurationParameterException("Configuration has no '{$parameter} parameter'");
+            },
+            'call' => function ($rendererFqcn, array $variables = []) {
+                return $this->coreModule->getRenderer($rendererFqcn)->render($variables);
+            },
+            'flashes' => function () {
+                $flashes = [];
+                $this->coreModule->useSession();
+
+                if (isset($_SESSION['flashes'])) {
+                     $flashes = $_SESSION['flashes'];
+                     unset($_SESSION['flashes']);
+                }
+
+                return $flashes;
+            }
         ];
     }
 
@@ -179,7 +191,7 @@ class Templating implements ModuleConsumerInterface
     }
 
     /**
-     * Returns the var helper.
+     * Returns the var helper (or its "raw" equivalent).
      *
      * This helper is used to access the value of the variables passed to the template.
      * Its parameters are :
@@ -187,16 +199,17 @@ class Templating implements ModuleConsumerInterface
      * - default (optional) : default value to use if the variable is not defined (if set,
      *                        the default value cannot be null)
      *
-     * If the value is a string, it will be escaped. In dev and test environment, if the variable
-     * is not defined and no default value is provided, an exception will be thrown.
+     * If the value is a string, it will be escaped (unless the helper "raw" is used).
+     * In dev and test environment, if the variable is not defined and no default
+     * value is provided, an exception will be thrown.
      *
      * @return Closure
      */
-    private function getVarHelper()
+    private function getVarHelper($raw = false)
     {
-        return function ($name, $default = null) {
+        return function ($name, $default = null) use ($raw){
             if (isset($this->variables[$name])) {
-                return is_string($this->variables[$name]) ?
+                return is_string($this->variables[$name]) && $raw === false ?
                     htmlspecialchars($this->variables[$name], ENT_QUOTES, 'UTF-8') :
                     $this->variables[$name];
             }

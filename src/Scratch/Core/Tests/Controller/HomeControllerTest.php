@@ -12,5 +12,7 @@ class HomeControllerTest extends \PHPUnit_Framework_TestCase
         $response = $client->request('/', 'GET');
         $this->assertContains('Accueil', $response['body']);
         $this->assertEquals(200, $response['code']);
+
+        $client->getModule('Scratch\Core\Module\CoreModule')->destroySession();
     }
 }

@@ -38,6 +38,14 @@ class TemplatingTest extends \PHPUnit_Framework_TestCase
         $var('unknownVariable');
     }
 
+    public function testRawHelperBehavesLikeVarHelperButDoesntEscapeStrings()
+    {
+        $raw = $this->getHelper('raw', ['foo' => ['bar', 'baz'], 'bat' => '<script>alert("ok");</script>']);
+        $this->assertEquals(['bar', 'baz'], $raw('foo'));
+        $this->assertEquals('bar', $raw('boo', 'bar'));
+        $this->assertEquals('<script>alert("ok");</script>', $raw('bat'));
+    }
+
     public function testPathHelperConcatenatesTheWebPathOfTheApplicationAndTheGivenPathInfo()
     {
         $path = $this->getHelper('path', [], 'prod');
@@ -116,6 +124,25 @@ class TemplatingTest extends \PHPUnit_Framework_TestCase
         $this->setExpectedException('Scratch\Core\Library\Templating\Exception\UnknownControlTypeException');
         $formRow = $this->getHelper('formRow');
         $formRow('unknownType', 'foo', 'Foo');
+    }
+
+    public function testCallHelperGetsARendererInstanceAndCallsItsRenderMethod()
+    {
+        $call = $this->getHelper('call');
+        $this->assertEquals('Foo renderer output with bar = baz', $call('Foo\Renderer', ['bar' => 'baz']));
+    }
+
+    public function testConfigHelper()
+    {
+        $config = $this->getHelper('config');
+        $this->assertEquals('bar', $config('foo'));
+        $this->setExpectedException('Scratch\Core\Library\Templating\Exception\UnknownConfigurationParameterException');
+        $config('unknownParameter');
+    }
+
+    public function testFlashesHelper()
+    {
+        $this->markTestSkipped('Not implemented yet');
     }
 
     /**
@@ -208,7 +235,7 @@ class TemplatingTest extends \PHPUnit_Framework_TestCase
         return [
             ['tpl1.html.php', [], '<h1>Template 1</h1>'],
             ['tpl2.html.php', ['foo' => 'Bar'], "<h1>Template 2</h1>\n<i>Bar</i>"],
-            ['tpl3.html.php', [], "<h1>Template 3</h1>\n<path>ok</path>\n<asset>ok</asset>\n<formRow>ok</formRow>"],
+            ['tpl3.html.php', [], "<h1>Template 3</h1>\n<path>ok</path>\n<asset>ok</asset>\n<formRow>ok</formRow>\n<call>ok</call>\n<config>ok</config>"],
             ['tpl4.html.php', [], "<h1>Template 4</h1>\n<h1>Template 1</h1>"],
         ];
     }
@@ -226,6 +253,18 @@ class TemplatingTest extends \PHPUnit_Framework_TestCase
             ->method('matchUrl')
             ->with('/unknown/path', 'GET', false)
             ->will($this->returnValue(false));
+        $renderer = $this->getMock('Scratch\Core\Library\RendererInterface');
+        $renderer->expects($this->any())
+            ->method('render')
+            ->with(['bar' => 'baz'])
+            ->will($this->returnValue('Foo renderer output with bar = baz'));
+        $core->expects($this->any())
+            ->method('getRenderer')
+            ->with('Foo\Renderer')
+            ->will($this->returnValue($renderer));
+        $core->expects($this->any())
+            ->method('getConfiguration')
+            ->will($this->returnValue(['foo' => 'bar']));
 
         return new Templating($core);
     }

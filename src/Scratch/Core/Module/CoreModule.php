@@ -10,16 +10,20 @@ use Scratch\Core\Module\Exception\NotFoundException;
 use Scratch\Core\Module\Exception\UnknownDriverException;
 use Scratch\Core\Module\Exception\UnknownPackageException;
 use Scratch\Core\Module\Exception\UnloadableModelException;
+use Scratch\Core\Library\SessionHandler;
 use Scratch\Core\Library\Security;
 use Scratch\Core\Library\Validation\ArrayValidator;
-use Scratch\Core\Library\Templating;
+use Scratch\Core\Library\Templating\Templating;
+use Scratch\Core\Library\RendererInterface;
+use Scratch\Core\Module\Exception\UnexpectedRendererTypeException;
+
 use Scratch\Core\Library\HtmlPageBuilder;
 
 /**
  * Module providing the core services of the platform. It is built like any other
  * module, but has a reference to the module manager which allows it to inject
- * modules into instances of objects if needed (e.g. controllers/listeners/models
- * that implement the ModuleConsumerInterface).
+ * modules into instances of objects if needed (e.g. controllers, listeners, models
+ * or renderers that implement the ModuleConsumerInterface).
  */
 class CoreModule extends AbstractModule
 {
@@ -71,6 +75,12 @@ class CoreModule extends AbstractModule
      * @var Scratch\Core\Library\Validation\ArrayValidator
      */
     private $validator;
+
+    /**
+     * Templating engine instance.
+     *
+     * @var Scratch\Core\Library\Templating\Templating
+     */
     private $templating;
 
     /**
@@ -229,6 +239,37 @@ class CoreModule extends AbstractModule
     }
 
     /**
+     * Starts the session if not started yet.
+     */
+    public function useSession()
+    {
+        if (session_status() === PHP_SESSION_NONE) {
+            $sessionHandler = new SessionHandler($this->configuration['sessionDir'], $this->configuration['sessionLifetime']);
+            session_set_save_handler($sessionHandler);
+            session_start();
+        }
+    }
+
+    /**
+     * Destroys the session if started.
+     */
+    public function destroySession()
+    {
+        if (session_status() === PHP_SESSION_ACTIVE) {
+            $_SESSION = [];
+
+            if (ini_get('session.use_cookies')) {
+                $params = session_get_cookie_params();
+                setcookie(session_name(), '', time() - 42000,
+                    $params['path'], $params['domain'],
+                    $params['secure'], $params['httponly']
+                );
+            }
+            session_destroy();
+        }
+    }
+
+    /**
      * Returns an instance of the Security class.
      *
      * @return Scratch\Core\Library\Security
@@ -236,7 +277,7 @@ class CoreModule extends AbstractModule
     public function getSecurity()
     {
         if (!isset($this->security)) {
-            $this->security = new Security($this->getModel('Scratch/Core', 'UserModel'));
+            $this->security = new Security($this);
         }
 
         return $this->security;
@@ -256,18 +297,37 @@ class CoreModule extends AbstractModule
         return $this->validator;
     }
 
+    /**
+     * Returns an instance of the Templating class.
+     *
+     * @return Scratch\Core\Library\Templating\Templating
+     */
     public function getTemplating()
     {
         if (!isset($this->templating)) {
-            $this->templating = new Templating(
-                //$container, NEED TO BE FIXED !!!!!!!!!!
-
-                $_SERVER['SCRIPT_NAME'], // move superglobals in container init (app.php)
-                preg_replace('#/[^/]*$#', '', $_SERVER['SCRIPT_NAME'])
-            );
+            $this->templating = new Templating($this);
         }
 
         return $this->templating;
+    }
+
+    /**
+     * Returns an instance of a renderer. If the renderer implements the interface
+     * ModuleConsumerInterface, the modules it depends on are injected into it.
+     *
+     * @param string $rendererFqcn FQCN of the renderer
+     * @returns Scratch\Core\Library\RendererInterface
+     * @throws UnexpectedRendererTypeException if the renderer doesn't implement the RendererInterface
+     */
+    public function getRenderer($rendererFqcn)
+    {
+        $renderer = $this->moduleManager->createConsumer($rendererFqcn);
+
+        if (!$renderer instanceof RendererInterface) {
+            throw new UnexpectedRendererTypeException("Renderer '{$rendererFqcn}' must implement the RendererInterface");
+        }
+
+        return $renderer;
     }
 
     public function getMasterPage()

@@ -2,21 +2,24 @@
 
 namespace Scratch\Core\Library;
 
-use Scratch\Core\Model\Api\AbstractUserModel;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Module\CoreModule;
 
-class Security
+class Security implements ModuleConsumerInterface
 {
-    private $userModel;
+    private $coreModule;
 
-    public function __construct(AbstractUserModel $userModel)
+    public function __construct(CoreModule $coreModule)
     {
-        $this->userModel = $userModel;
+        $this->coreModule = $coreModule;
     }
 
     public function getUser()
     {
+        $this->coreModule->useSession();
+
         if (isset($_SESSION['userId'])) {
-            return $this->userModel->getUserById($_SESSION['userId']);
+            return $this->coreModule->getModel('Scratch/Core', 'UserModel')->getUserById($_SESSION['userId']);
         }
 
         return 'ANONYMOUS';

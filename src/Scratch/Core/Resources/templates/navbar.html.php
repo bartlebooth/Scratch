@@ -8,7 +8,6 @@
             </a>
 
             <a class="brand" href="<?= $path('/') ?>">Scratch</a>
-
             <?php if ($var('connected', true)): ?>
                 <div class="btn-group pull-right">
                 <a class="btn dropdown-toggle" data-toggle="dropdown" href="#">

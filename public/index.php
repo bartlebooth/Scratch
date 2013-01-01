@@ -46,9 +46,6 @@ call_user_func(function (array $config, $env, $matchUrl) {
                 $coreModule->dispatch('exception', new Exception("{$error['message']}, in {$error['file']} line {$error['line']}"));
             }
         });
-        $sessionHandler = new Scratch\Core\Library\SessionHandler($config['sessionDir'], $config['sessionLifetime']);
-        session_set_save_handler($sessionHandler);
-        session_start();
         $matchUrl && $coreModule->matchUrl(!isset($_SERVER['PATH_INFO']) ? '/' : $_SERVER['PATH_INFO'], $_SERVER['REQUEST_METHOD']);
     } catch (Exception $ex) {
         while (ob_get_level() > $originalObLevel) {

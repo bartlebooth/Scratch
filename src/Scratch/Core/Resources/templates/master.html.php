@@ -1,15 +1,15 @@
 <!DOCTYPE html>
 <!--[if lt IE 7]>
-<html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="<?= $var('locale') ?>">
+<html class="no-js lt-ie9 lt-ie8 lt-ie7" lang="<?= $config('locale') ?>">
 <![endif]-->
 <!--[if IE 7]>
-<html class="no-js lt-ie9 lt-ie8" lang="<?= $var('locale') ?>">
+<html class="no-js lt-ie9 lt-ie8" lang="<?= $config('locale') ?>">
 <![endif]-->
 <!--[if IE 8]>
-<html class="no-js lt-ie9" lang="<?= $var('locale') ?>">
+<html class="no-js lt-ie9" lang="<?= $config('locale') ?>">
 <![endif]-->
 <!--[if gt IE 8]><!-->
-<html class="no-js" lang="<?= $var('locale') ?>">
+<html class="no-js" lang="<?= $config('locale') ?>">
 <!--<![endif]-->
     <head>
         <meta charset="utf-8">
@@ -17,7 +17,7 @@
         <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title><?= $var('title', 'Scratch') ?></title>
-        <link rel="shortcut icon" href="<?= $asset($var('favicon', '/img/Scratch.ico')) ?>"/>
+        <link rel="shortcut icon" href="<?= $asset($var('favicon', '/img/claroline.ico')) ?>"/>
         <link rel="stylesheet" type="text/css" href="<?= $asset('/css/bootstrap.css') ?>"/>
         <link rel="stylesheet" type="text/css" href="<?= $asset('/css/bootstrap-responsive.css') ?>"/>
         <!-- The Modernizr script MUST stay before the body tag. -->
@@ -31,7 +31,7 @@
                 <a href="http://www.google.com/chromeframe/?redirect=true">install Google Chrome Frame</a> to experience this site.
             </p>
         <![endif]-->
-        <?= $call('core::navbar') ?>
+        <?= $call('Scratch\Core\Renderer\NavbarRenderer') ?>
         <div id="wrapper">
             <div id="grid" class="container-fluid">
                 <div class="row-fluid">
@@ -52,11 +52,11 @@
                     <?php endforeach; ?>
                 </div>
                 <div class="row-fluid">
-                    <?= $var('body', '', true) ?>
+                    <?= $raw('body', '') ?>
                 </div>
             </div>
         </div>
-        <?= $call('core::footer') ?>
+        <?= $call('Scratch\Core\Renderer\FooterRenderer') ?>
         <script type="text/javascript" src="<?= $asset('/js/jquery-1.7.1.min.js') ?>"></script>
         <script type="text/javascript" src="<?= $asset('/js/bootstrap.js') ?>"></script>
     </body>

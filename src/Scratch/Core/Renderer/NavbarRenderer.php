@@ -2,19 +2,21 @@
 
 namespace Scratch\Core\Renderer;
 
-use Scratch\Core\Library\Templating;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Library\RendererInterface;
+use Scratch\Core\Module\CoreModule;
 
-class NavbarRenderer
+class NavbarRenderer implements RendererInterface, ModuleConsumerInterface
 {
     private $templating;
 
-    public function __construct(Templating $templating)
+    public function __construct(CoreModule $coreModule)
     {
-        $this->templating = $templating;
+        $this->templating = $coreModule->getTemplating();
     }
 
-    public function render()
+    public function render(array $variables = [])
     {
-        return $this->templating->display(__DIR__ . '/../Resources/templates/navbar.html.php');
+        echo $this->templating->render(__DIR__ . '/../Resources/templates/navbar.html.php');
     }
 }
