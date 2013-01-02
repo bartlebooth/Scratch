@@ -232,11 +232,13 @@ class TemplatingTest extends \PHPUnit_Framework_TestCase
 
     public function templateProvider()
     {
+        $eol = PHP_EOL;
+
         return [
             ['tpl1.html.php', [], '<h1>Template 1</h1>'],
-            ['tpl2.html.php', ['foo' => 'Bar'], "<h1>Template 2</h1>\n<i>Bar</i>"],
-            ['tpl3.html.php', [], "<h1>Template 3</h1>\n<path>ok</path>\n<asset>ok</asset>\n<formRow>ok</formRow>\n<call>ok</call>\n<config>ok</config>"],
-            ['tpl4.html.php', [], "<h1>Template 4</h1>\n<h1>Template 1</h1>"],
+            ['tpl2.html.php', ['foo' => 'Bar'], "<h1>Template 2</h1>$eol<i>Bar</i>"],
+            ['tpl3.html.php', [], "<h1>Template 3</h1>$eol<path>ok</path>$eol<asset>ok</asset>$eol<formRow>ok</formRow>$eol<call>ok</call>$eol<config>ok</config>$eol<raw>ok</raw>$eol<flashes>ok</flashes>"],
+            ['tpl4.html.php', [], "<h1>Template 4</h1>$eol<h1>Template 1</h1>"],
         ];
     }
 

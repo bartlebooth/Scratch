@@ -182,14 +182,14 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
     /**
      * @dataProvider dbConfigProvider
      */
-    public function testGetConnectionTriesToReturnsAPdoInstanceAccordingToConfigurationParameters(array $config, $env, $sqlState)
+    public function testGetConnectionTriesToReturnsAPdoInstanceAccordingToConfigurationParameters(array $config, $env, array $sqlState)
     {
         try {
             $core = $this->buildCoreModule([], $config, [], $env);
             $core->getConnection();
             $this->fail('No exception thrown');
         } catch (\PDOException $ex) {
-            $this->assertEquals($sqlState, $ex->getCode());
+            $this->assertTrue(in_array($ex->getCode(), $sqlState));
         }
     }
 
@@ -352,7 +352,7 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
                     ]
                 ],
                 'test',
-                2005
+                [2002, 2005]
             ]
         ];
     }
