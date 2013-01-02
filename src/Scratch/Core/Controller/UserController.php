@@ -3,11 +3,20 @@
 namespace Scratch\Core\Controller;
 
 use Scratch\Core\Library\Controller;
+use Scratch\Core\Library\Module\ModuleConsumerInterface;
+use Scratch\Core\Module\CoreModule;
 use Scratch\Core\Library\PostLimitException;
-use Scratch\Core\Library\ValidationException;
+use Scratch\Core\Library\Validation\ValidationException;
 
-class UserController extends Controller
+class UserController extends Controller implements ModuleConsumerInterface
 {
+    private $coreModule;
+
+    public function __construct(CoreModule $coreModule)
+    {
+        $this->coreModule = $coreModule;
+    }
+
     public function testForm(array $data = [])
     {
         $collections = [
@@ -82,7 +91,8 @@ class UserController extends Controller
         try {
             header('cache-control: no-cache');
             $data = $this->getPostedData();
-            $this->container['core::model']('Scratch/Core', 'UserModel')->createUser($data);
+            $this->coreModule->getModel('Scratch/Core', 'UserModel')->createUser($data);
+            $this->coreModule->useSession();
             $_SESSION['flashes']['success'][] = 'User created';
             $this->displayForm();
         } catch (PostLimitException $ex) {
@@ -94,9 +104,19 @@ class UserController extends Controller
 
     private function displayForm(array $data = [])
     {
-        $this->container['core::masterPage']()
-            ->setSectionTitle('Create user')
-            ->setBody(__DIR__.'/../Resources/templates/user_form.html.php', $data)
-            ->display();
+//        $this->container['core::masterPage']()
+//            ->setSectionTitle('Create user')
+//            ->setBody(__DIR__.'/../Resources/templates/user_form.html.php', $data)
+//            ->display();
+        $templating = $this->coreModule->getTemplating();
+        echo $templating->render(
+            __DIR__.'/../Resources/templates/master.html.php', [
+                'sectionTitle' => 'Create user',
+                'body' => $templating->render(
+                    __DIR__.'/../Resources/templates/user_form.html.php',
+                    $data
+                )
+            ]
+        );
     }
 }

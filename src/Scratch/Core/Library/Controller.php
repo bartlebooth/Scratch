@@ -6,24 +6,16 @@ use \Exception;
 
 class Controller
 {
-    /** @var Container */
-    protected $container;
-
-    public function setContainer(Container $container)
-    {
-        $this->container = $container;
-    }
-
     public function getPostedData()
     {
-        // NEEDS TO BE FIXED !!!!!!!!!!!!!
-        if (false !== $requestError = $this->container['requestError']) {
-            if (preg_match('#POST Content-Length of \d+ bytes exceeds the limit of \d+ bytes#', $requestError['message'])) {
-                throw new PostLimitException();
-            }
-
-            throw new Exception($requestError['message']);
-        }
+//        // NEEDS TO BE FIXED !!!!!!!!!!!!!
+//        if (false !== $requestError = $this->container['requestError']) {
+//            if (preg_match('#POST Content-Length of \d+ bytes exceeds the limit of \d+ bytes#', $requestError['message'])) {
+//                throw new PostLimitException();
+//            }
+//
+//            throw new Exception($requestError['message']);
+//        }
 
         return array_merge($this->trimData($_POST), $_FILES);
     }
