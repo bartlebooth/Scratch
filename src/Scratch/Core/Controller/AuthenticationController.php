@@ -53,6 +53,7 @@ class AuthenticationController extends Controller implements ModuleConsumerInter
     public function logout()
     {
         $this->coreModule->destroySession();
-        header("Location: {$_SERVER['SCRIPT_NAME']}");
+        header("Location: {$this->coreModule->getContext()['frontScript']}");
+        echo 'Redirecting...';
     }
 }

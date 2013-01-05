@@ -12,10 +12,10 @@
 <html class="no-js" lang="<?= $config('locale') ?>">
 <!--<![endif]-->
     <head>
-        <meta charset="utf-8">
+        <meta charset="utf-8"/>
         <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
-        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
         <title><?= $var('title', 'Scratch') ?></title>
         <link rel="shortcut icon" href="<?= $asset($var('favicon', '/img/claroline.ico')) ?>"/>
         <link rel="stylesheet" type="text/css" href="<?= $asset('/css/bootstrap.css') ?>"/>
