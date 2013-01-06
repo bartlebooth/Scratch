@@ -225,7 +225,7 @@ class CoreModule extends AbstractModule
 
         if (!isset($this->models[$class])) {
             if (isset($this->configuration['packages'][$package]) && $this->configuration['packages'][$package]['isActive'] === true) {
-                if (file_exists($this->configuration['srcDir']. '/' . str_replace('\\', '/', $class) . '.php')) {
+                if (class_exists($class)) {
                     $this->models[$class] = $this->moduleManager->createConsumer($class);
                 } else {
                     throw new UnloadableModelException("Cannot find the model '{$model}' in package '{$package}' (driver : '{$dbConfig['driver']}').");

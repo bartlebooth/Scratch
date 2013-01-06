@@ -6,6 +6,7 @@ class Controller1
 {
     public function action1()
     {
-        echo 'Action 1 output';
+        http_response_code(200);
+        echo 'FakeVendor1\Package1\Controller1::action1 output';
     }
 }

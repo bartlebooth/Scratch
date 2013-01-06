@@ -216,7 +216,7 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
             [],
             [
                 'testDb' => ['driver' => 'Foo'],
-                'packages' => ['Foo\Bar' => ['isActive' => false]],
+                'packages' => ['Foo\Bar' => ['isActive' => false]]
             ],
             [],
             'test'
@@ -232,8 +232,7 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
             [],
             [
                 'testDb' => ['driver' => 'Baz'],
-                'packages' => ['Foo\Bar' => ['isActive' => true]],
-                'srcDir' => __DIR__
+                'packages' => ['Foo\Bar' => ['isActive' => true]]
             ],
             [],
             'test'
@@ -247,8 +246,7 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
             [],
             [
                 'testDb' => ['driver' => 'Driver1'],
-                'packages' => ['Vendor1\Package1' => ['isActive' => true]],
-                'srcDir' => __DIR__ . '/models'
+                'packages' => ['Vendor1\Package1' => ['isActive' => true]]
             ],
             [],
             'test'
@@ -265,8 +263,7 @@ class CoreModuleTest extends \PHPUnit_Framework_TestCase
             ],
             [
                 'testDb' => ['driver' => 'Driver1'],
-                'packages' => ['Vendor1\Package1' => ['isActive' => true]],
-                'srcDir' => __DIR__ . '/models'
+                'packages' => ['Vendor1\Package1' => ['isActive' => true]]
             ],
             [],
             'test'

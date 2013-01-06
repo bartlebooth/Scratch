@@ -10,7 +10,7 @@ class HomeControllerTest extends \PHPUnit_Framework_TestCase
     {
         $client = new Client();
         $response = $client->request('/', 'GET');
-        $this->assertContains('Accueil', $response['body']);
+        $this->assertContains('Accueil', $response['content']);
         $this->assertEquals(200, $response['code']);
 
         $client->getModule('Scratch\Core\Module\CoreModule')->destroySession();

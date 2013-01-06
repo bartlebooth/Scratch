@@ -3,6 +3,7 @@
 namespace Scratch\Core\Library\Testing;
 
 use Scratch\Core\Library\Module\ModuleManager;
+use Scratch\Core\Library\Testing\Exception\UnavailableResponseException;
 
 class Client
 {
@@ -34,8 +35,11 @@ class Client
         $this->response = [
             'headers' => xdebug_get_headers(),
             'code' => http_response_code(),
-            'body' => ob_get_clean()
+            'content' => ob_get_clean()
         ];
+        $_POST = [];
+        $_GET = [];
+        $_FILES = [];
 
         if ($this->followRedirects) {
             foreach ($this->response['headers'] as $header) {
@@ -52,7 +56,7 @@ class Client
     public function getResponse()
     {
         if (!isset($this->response)) {
-            throw new \Exception('No response available');
+            throw new UnavailableResponseException('No response is available : a request must be made first');
         }
 
         return $this->response;
@@ -61,7 +65,7 @@ class Client
     public function submitForm($formId, array $post= [])
     {
         $doc = new \DOMDocument();
-        $doc->loadXML($this->getResponse()['body']);
+        $doc->loadXML($this->getResponse()['content']);
         $xPath = new \DOMXPath($doc);
         $form = $xPath->query("//form[@id='{$formId}']")->item(0);
         $action = $form->getAttribute('action');
