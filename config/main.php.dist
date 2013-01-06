@@ -3,8 +3,10 @@
 return [
     'srcDir' => __DIR__ . '/../src',
     'packages' => [
-        'Scratch/Core' => true,
-        'Scratch/Demo' => true
+        'Scratch/Core' => [
+            'isActive' => true,
+            'definitions' => __DIR__ . '/../src/Scratch/Core/Resources/config/definitions.php'
+        ]
     ],
     'devIps' => [
         '127.0.0.1' => true
