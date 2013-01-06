@@ -15,27 +15,11 @@ class Client
 
     public function __construct(array $config = null)
     {
-        $config = $config ? $config : require __DIR__ . '/../../../../../config/main.php';
-        $routing = [];
-        $modules = [];
-        $listeners = [];
-        $translations = [];
-
-        foreach ($config['packages'] as $package => $isActive) {
-            $isActive && require "{$config['srcDir']}/{$package}/Resources/config/definitions.php";
-        }
-
-        $this->moduleManager = new ModuleManager(
-            [
-                'routing' => $routing,
-                'modules' => $modules,
-                'listeners' => $listeners,
-                'translations' => $translations
-            ],
-            $config,
-            ['frontScript' => ''],
-            'test'
-        );
+        $config = $config ? array_merge_recursive(require __DIR__ . '/../../../../../config/main.php', $config) : $config;
+        $env = 'test';
+        $matchUrl = false;
+        $autoload = false;
+        $this->moduleManager = require __DIR__ . '/../../../../../public/index.php';
     }
 
     public function followRedirects($followRedirects)
@@ -46,8 +30,7 @@ class Client
     public function request($pathInfo, $method)
     {
         ob_start();
-        $this->moduleManager->getModule('Scratch\Core\Module\CoreModule')->matchUrl($pathInfo, $method); // cache core module...
-
+        $this->moduleManager->getModule('Scratch\Core\Module\CoreModule')->matchUrl($pathInfo, $method);
         $this->response = [
             'headers' => xdebug_get_headers(),
             'code' => http_response_code(),

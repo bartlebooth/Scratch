@@ -224,7 +224,7 @@ class CoreModule extends AbstractModule
         $class = "{$namespace}\Model\Driver\\{$dbConfig['driver']}\\{$model}";
 
         if (!isset($this->models[$class])) {
-            if (isset($this->configuration['packages'][$package]) && $this->configuration['packages'][$package] === true) {
+            if (isset($this->configuration['packages'][$package]) && $this->configuration['packages'][$package]['isActive'] === true) {
                 if (file_exists($this->configuration['srcDir']. '/' . str_replace('\\', '/', $class) . '.php')) {
                     $this->models[$class] = $this->moduleManager->createConsumer($class);
                 } else {
