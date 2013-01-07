@@ -24,7 +24,7 @@ class AuthenticationControllerTest extends \PHPUnit_Framework_TestCase
     public function testFailedAuthentication()
     {
         $this->client->request('/login/form', 'GET');
-        $this->client->submitForm('login-form', ['username' => 'foo', 'password' => 'bar']);
+        $this->client->submitForm('//form[@id="login-form"]', ['username' => 'foo', 'password' => 'bar']);
         $this->assertContains('Authentication has failed', $this->client->getResponse()['content']);
     }
 
@@ -34,7 +34,7 @@ class AuthenticationControllerTest extends \PHPUnit_Framework_TestCase
             ->getModel('Scratch/Core', 'UserModel')
             ->createUser(['username' => 'admin', 'password' => ['admin', 'admin'], 'firstName' => 'John', 'lastName' => 'Doe']);
         $this->client->request('/login/form', 'GET');
-        $this->client->submitForm('login-form', ['username' => 'admin', 'password' => 'admin']);
+        $this->client->submitForm('//form[@id="login-form"]', ['username' => 'admin', 'password' => 'admin']);
         $this->assertContains('LOGGED', $this->client->getResponse()['content']);
         $this->client->request('/logout', 'GET');
         $this->assertContains('Accueil', $this->client->getResponse()['content']);

@@ -16,7 +16,7 @@ class Controller1 implements ModuleConsumerInterface
 
     public function action1()
     {
-        echo sprintf(
+        printf(
             '<div><a href="%s">Link</a><a href="#">Anchor</a></div>',
             $this->core->getContext()['frontScript'] . '/prefix3/action2'
         );

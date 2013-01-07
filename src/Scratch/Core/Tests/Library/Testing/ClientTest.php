@@ -115,22 +115,32 @@ class ClientTest extends \PHPUnit_Framework_TestCase
     {
         $client = $this->initClientWithTestPackages(['FakeVendor2/Package1']);
         $client->request('/prefix4/action1', 'GET');
-        $this->assertTrue(false);
+        $client->submitForm('//form[@id="valid-form-1"]', ['foo' => 'abc', 'bar' => 'xyz']);
+        $this->assertEquals('Valid form 1 submitted with foo = abc and bar = xyz', $client->getResponse()['content']);
     }
 
     public function testSubmitFormThrowsAnExceptionIfNodeListIsEmpty()
     {
         $this->setExpectedException('Scratch\Core\Library\Testing\Exception\EmptyNodeListException');
+        $client = $this->initClientWithTestPackages(['FakeVendor2/Package1']);
+        $client->request('/prefix4/action3', 'GET');
+        $client->submitForm('/div/form[@class="non-existent-form"]', ['foo' => '123']);
     }
 
     public function testSubmitFormThrowsAnExceptionIfSelectedNodeIsNotAForm()
     {
         $this->setExpectedException('Scratch\Core\Library\Testing\Exception\UnexpectedTagNameException');
+        $client = $this->initClientWithTestPackages(['FakeVendor2/Package1']);
+        $client->request('/prefix4/action3', 'GET');
+        $client->submitForm('//*[@id="not-a-form"]', ['bar' => '456']);
     }
 
     public function testSubmitFormThrowsAnExceptionIfSelectedFormHasNoActionAttribute()
     {
         $this->setExpectedException('Scratch\Core\Library\Testing\Exception\MissingAttributeException');
+        $client = $this->initClientWithTestPackages(['FakeVendor2/Package1']);
+        $client->request('/prefix4/action4', 'GET');
+        $client->submitForm('//form[@class="missing-action-form"]', []);
     }
 
     private function initClientWithTestPackages(array $packages)

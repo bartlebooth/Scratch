@@ -272,7 +272,7 @@ class CoreModule extends AbstractModule
     /**
      * Returns an instance of the Security class.
      *
-     * @return Scratch\Core\Library\Security
+     * @return \Scratch\Core\Library\Security
      */
     public function getSecurity()
     {
@@ -286,7 +286,7 @@ class CoreModule extends AbstractModule
     /**
      * Returns an instance of the ArrayValidator class.
      *
-     * @return Scratch\Core\Library\Validation\ArrayValidator
+     * @return \Scratch\Core\Library\Validation\ArrayValidator
      */
     public function getValidator()
     {
@@ -300,7 +300,7 @@ class CoreModule extends AbstractModule
     /**
      * Returns an instance of the Templating class.
      *
-     * @return Scratch\Core\Library\Templating\Templating
+     * @return \Scratch\Core\Library\Templating\Templating
      */
     public function getTemplating()
     {
@@ -316,7 +316,7 @@ class CoreModule extends AbstractModule
      * ModuleConsumerInterface, the modules it depends on are injected into it.
      *
      * @param string $rendererFqcn FQCN of the renderer
-     * @returns Scratch\Core\Library\RendererInterface
+     * @returns \Scratch\Core\Library\RendererInterface
      * @throws UnexpectedRendererTypeException if the renderer doesn't implement the RendererInterface
      */
     public function getRenderer($rendererFqcn)
