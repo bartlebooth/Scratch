@@ -243,8 +243,8 @@ class Templating implements ModuleConsumerInterface
      * suffixed by "::errors" is passed to the template.
      *
      * Composite control types (i.e. select, selectMultiple, radio and checkbox) need their options
-     * to be passed to the template using a variable named with the original field named suffixed
-     * by "::items". This variable must be an associative array ("id of the option" => "value").
+     * to be passed to the template using a variable named with the original field suffixed by
+     * "::items". This variable must be an associative array ("id of the option" => "value").
      *
      * @return Closure
      */
