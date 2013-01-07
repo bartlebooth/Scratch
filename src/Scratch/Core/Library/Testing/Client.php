@@ -2,8 +2,14 @@
 
 namespace Scratch\Core\Library\Testing;
 
+use \DOMDocument;
+use \DOMXPath;
+use \DOMNode;
 use Scratch\Core\Library\Module\ModuleManager;
 use Scratch\Core\Library\Testing\Exception\UnavailableResponseException;
+use Scratch\Core\Library\Testing\Exception\EmptyNodeListException;
+use Scratch\Core\Library\Testing\Exception\UnexpectedTagNameException;
+use Scratch\Core\Library\Testing\Exception\MissingAttributeException;
 
 class Client
 {
@@ -11,6 +17,8 @@ class Client
     private $moduleManager;
 
     private $response;
+
+    private $xPath;
 
     private $followRedirects = true;
 
@@ -40,6 +48,7 @@ class Client
         $_POST = [];
         $_GET = [];
         $_FILES = [];
+        $this->xPath = null;
 
         if ($this->followRedirects) {
             foreach ($this->response['headers'] as $header) {
@@ -62,29 +71,65 @@ class Client
         return $this->response;
     }
 
-    public function submitForm($formId, array $post= [])
+    public function xPathQuery($expression, DOMNode $node = null)
     {
-        $doc = new \DOMDocument();
-        $doc->loadXML($this->getResponse()['content']);
-        $xPath = new \DOMXPath($doc);
-        $form = $xPath->query("//form[@id='{$formId}']")->item(0);
-        $action = $form->getAttribute('action');
+        if (!$this->xPath instanceof DOMXPath) {
+            $doc = new DOMDocument();
+            $doc->loadXML($this->getResponse()['content']);
+            $this->xPath = new DOMXPath($doc);
+        }
 
+        return $this->xPath->query($expression, $node);
+    }
+
+    public function clickLink($xPathSelector)
+    {
+        $linkNode = $this->checkNode($xPathSelector, 'a', 'href');
+
+        return $this->request($linkNode->getAttribute('href'), 'GET');
+    }
+
+    public function submitForm($xPathSelector, array $post = [])
+    {
+        $formNode = $this->checkNode($xPathSelector, 'form', 'action');
+
+        /*
         foreach ($post as $field => $value) {
             if ($xPath->query(".//input[@name='{$field}']", $form)->length === 0) {
                 throw new \Exception("Field '{$field}' doesn't exist");
             }
 
             // check field is not disabled...
-        }
+        }*/
 
-        $_POST = $post; // reinit superglobals between requests...
+        $_POST = $post;
 
-        return $this->response = $this->request($action, 'POST');
+        return $this->request($formNode->getAttribute('action'), 'POST');
     }
 
     public function getModule($moduleFqcn)
     {
         return $this->moduleManager->getModule($moduleFqcn);
+    }
+
+    private function checkNode($xPathSelector, $expectedTagName, $expectedAttribute)
+    {
+        $nodeList = $this->xPathQuery($xPathSelector);
+
+        if ($nodeList->length === 0) {
+            throw new EmptyNodeListException("The expression '{$xPathSelector}' doesn't match any node");
+        }
+
+        $node = $nodeList->item(0);
+
+        if ($node->nodeName !== $expectedTagName) {
+            throw new UnexpectedTagNameException("The node targeted by the expression '{$xPathSelector}' is not an '{$expectedTagName}' element");
+        }
+
+        if (!$node->hasAttribute($expectedAttribute)) {
+            throw new MissingAttributeException("The '{$expectedTagName}' element targeted by the expression '{$xPathSelector}' has no '{$expectedAttribute}' attribute");
+        }
+
+        return $node;
     }
 }

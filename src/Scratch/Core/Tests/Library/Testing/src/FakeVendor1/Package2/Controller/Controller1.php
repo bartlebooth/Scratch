@@ -19,4 +19,9 @@ class Controller1 implements ModuleConsumerInterface
         header('Location: ' . $this->core->getContext()['frontScript'] . '/prefix1/action1');
         echo 'Redirecting to FakeVendor1\Package1\Controller1::action1...';
     }
+
+    public function action2()
+    {
+        echo '<html><head></head><body><h1>Foo</h1><div id="bar"><span>baz</span><span>bat</span></div></body></html>';
+    }
 }
